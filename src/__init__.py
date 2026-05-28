@@ -1,4 +1,10 @@
 from fastapi import FastAPI
+from src.book.router import book_router
 
 
-app = FastAPI()
+version = "v1"
+app = FastAPI(
+    version=version
+)
+
+app.include_router(book_router, prefix=f"/api/{version}/books")
