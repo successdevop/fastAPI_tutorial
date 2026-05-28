@@ -23,7 +23,7 @@ class Core:
         for book in self.data:
             if book.get("id") == book_id:
                 self.data.remove(book)
-                return
+                return {"message":"Book deleted"}
         raise HTTPException(detail="Book not found", status_code=status.HTTP_404_NOT_FOUND)
 
     def update_a_book(self, book_id: int, book_data: BookUpdateModel) -> dict:

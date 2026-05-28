@@ -15,17 +15,17 @@ async def get_all_books():
     return core_service.get_all_books()
 
 
-@book_router.get("/")
+@book_router.get("/{book_id}")
 async def get_a_book(book_id: int):
     return core_service.get_a_book(book_id)
 
 
-@book_router.patch("/")
+@book_router.patch("/{book_id}")
 async def update_a_book(book_id: int, book_data: BookUpdateModel):
     return core_service.update_a_book(book_id=book_id, book_data=book_data)
 
 
-@book_router.delete("/")
+@book_router.delete("/{book_id}")
 async def delete_a_book(book_id: int):
     return core_service.delete_a_book(book_id)
 
