@@ -2,12 +2,12 @@ from typing import List
 
 from fastapi import APIRouter
 
-from src.book.core import Core
+from src.book.book_service import BookService
 from src.book.book_schema import BookModel, BookUpdateModel
 
 
 book_router = APIRouter()
-core_service = Core()
+core_service = BookService()
 
 
 @book_router.get("/", response_model=List)
