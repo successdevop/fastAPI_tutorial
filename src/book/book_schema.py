@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, field_serializer
 
@@ -16,7 +16,7 @@ class BookModel(BaseModel):
 
     @field_serializer("created_at", "updated_at")
     def serialize_datetime(self, dt: datetime) -> str:
-        return dt.strftime("%Y-%m-%d %H:%M:S") if dt else ""
+        return dt.strftime("%Y-%m-%d %H:%M:%S") if dt else ""
 
     class Config:
         from_attributes = True

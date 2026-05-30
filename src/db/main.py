@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 from src.config import Config
-from src.book.models import Book
+
 
 engine = create_async_engine(
     url=Config.DATABASE_URL,
@@ -14,6 +14,7 @@ engine = create_async_engine(
 
 async def init_db():
     async with engine.begin() as conn:
+        from src.book.models import Book
         await conn.run_sync(SQLModel.metadata.create_all)
 
 
