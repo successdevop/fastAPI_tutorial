@@ -19,7 +19,7 @@ class BookService:
     async def get_a_book(self, book_id: str, session: AsyncSession):
         statement = select(Book).where(Book.bk_id == book_id)
         output = await session.execute(statement)
-        book =  output.one_or_none()
+        book =  output.scalar_one_or_none()
 
         if not book:
             raise HTTPException(detail=f"Book with id {book_id} not found", status_code=status.HTTP_404_NOT_FOUND)
@@ -28,17 +28,17 @@ class BookService:
     async def delete_a_book(self, book_id: str, session: AsyncSession):
         statement = select(Book).where(Book.bk_id == book_id)
         output = await session.execute(statement)
-        book = output.one_or_none()
+        book = output.scalar_one_or_none()
 
         if not book:
             raise HTTPException(detail="Book not found", status_code=status.HTTP_404_NOT_FOUND)
 
-        await session.delete(statement)
+        await session.delete(book)
         await session.commit()
         return {"message":f"Book with id {book_id} deleted successfully"}
 
     async def update_a_book(self, book_id: str, book_data: BookUpdateModel, session: AsyncSession):
-        book_to_update = self.get_a_book(book_id, session)
+        book_to_update = await self.get_a_book(book_id, session)
         if book_to_update is not None:
             book_to_dict = book_data.model_dump(exclude_unset=True)
 

@@ -5,6 +5,10 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP
 import uuid
 
 
+def get_current_datetime()-> datetime:
+    return datetime.now(tz=timezone.utc)
+
+
 class Book(SQLModel, table=True):
     __tablename__ = "books"
 
@@ -22,13 +26,13 @@ class Book(SQLModel, table=True):
     language: str = Field(nullable=False)
 
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=get_current_datetime,
         sa_column=Column(TIMESTAMP(timezone=True), nullable=False)
     )
 
     updated_at: datetime = Field(
-        default_factory=lambda : datetime.now(timezone.utc),
-        sa_column=Column(TIMESTAMP(timezone=True), nullable=False)
+        default_factory=get_current_datetime,
+        sa_column=Column(TIMESTAMP(timezone=True), nullable=False, onupdate=get_current_datetime)
     )
 
     def __repr__(self):
