@@ -1,35 +1,35 @@
-from typing import List
-
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src.book.book_service import BookService
-from src.book.book_schema import BookModel, BookUpdateModel
+from src.book.book_schema import BookUpdateModel, BookCreateModel
+from src.db.main import get_db_session
 
 
 book_router = APIRouter()
 core_service = BookService()
 
 
-@book_router.get("/", response_model=List)
-async def get_all_books():
-    return core_service.get_all_books()
+@book_router.get("/", status_code=status.HTTP_200_OK)
+async def get_all_books(session: AsyncSession = Depends(get_db_session)):
+    return await core_service.get_all_books(session=session)
 
 
-@book_router.get("/{book_id}")
-async def get_a_book(book_id: int):
-    return core_service.get_a_book(book_id)
+@book_router.get("/{book_id}", status_code=status.HTTP_200_OK)
+async def get_a_book(book_id: str, session: AsyncSession = Depends(get_db_session)):
+    return await core_service.get_a_book(book_id, session=session)
 
 
-@book_router.patch("/{book_id}")
-async def update_a_book(book_id: int, book_data: BookUpdateModel):
-    return core_service.update_a_book(book_id=book_id, book_data=book_data)
+@book_router.patch("/{book_id}", status_code=status.HTTP_200_OK)
+async def update_a_book(book_id: str, book_data: BookUpdateModel, session: AsyncSession = Depends(get_db_session)):
+    return await core_service.update_a_book(book_id=book_id, book_data=book_data, session=session)
 
 
-@book_router.delete("/{book_id}")
-async def delete_a_book(book_id: int):
-    return core_service.delete_a_book(book_id)
+@book_router.delete("/{book_id}", status_code=status.HTTP_200_OK)
+async def delete_a_book(book_id: str, session: AsyncSession = Depends(get_db_session)):
+    return await core_service.delete_a_book(book_id, session=session)
 
 
-@book_router.post("/")
-async def create_book(book_data: BookModel):
-    return core_service.add_book(book_data=book_data)
+@book_router.post("/", status_code=status.HTTP_201_CREATED)
+async def create_book(book_data: BookCreateModel, session: AsyncSession = Depends(get_db_session)):
+    return await core_service.add_book(book_data=book_data, session=session)
