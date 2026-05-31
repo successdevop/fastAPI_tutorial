@@ -24,11 +24,14 @@ class User(SQLModel, table=True):
     first_name: str = Field(nullable=False)
     last_name: str = Field(nullable=False)
     is_verified: bool = False
+    password: str = Field(nullable=False)
 
     created_at: datetime = Field(default_factory=get_current_time,
                                  sa_column=Column(TIMESTAMP(timezone=True), nullable=False))
-    updated_at: datetime = Field(default_factory=get_current_time,
-                                 sa_column=Column(TIMESTAMP(timezone=True), nullable=False))
+
+    updated_at: datetime = Field(
+        default_factory=get_current_time,
+        sa_column=Column(TIMESTAMP(timezone=True), nullable=False, onupdate=get_current_time))
 
     def __repr__(self):
         return f"User<(username:{self.username} | email:{self.email} | user_id:{self.user_id})>"
