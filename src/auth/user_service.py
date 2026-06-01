@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from src.auth.user_schemna import UserCreatedModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.auth.user_model import User
+from src.utils.utils import UtilsService
 from sqlmodel import select
 
 
@@ -28,7 +29,10 @@ class UserService:
                                 status_code=status.HTTP_401_UNAUTHORIZED)
 
         new_user = User(**user_data_dict)
-        new_user.password_hash = pass
+        print(new_user)
+
+        new_user.password_hash = UtilsService().hash_password_method(user_data_dict.get("password_hash"))
+        print(new_user.password_hash)
 
         try:
             session.add(new_user)
