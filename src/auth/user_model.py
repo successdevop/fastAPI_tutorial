@@ -24,7 +24,8 @@ class User(SQLModel, table=True):
     first_name: str = Field(nullable=False)
     last_name: str = Field(nullable=False)
     is_verified: bool = False
-    password: str = Field(nullable=False)
+    is_deleted: bool = False
+    password_hash: str = Field(nullable=False, exclude=True)
 
     created_at: datetime = Field(default_factory=get_current_time,
                                  sa_column=Column(TIMESTAMP(timezone=True), nullable=False))
