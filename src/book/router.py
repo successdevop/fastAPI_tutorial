@@ -12,12 +12,12 @@ core_service = BookService()
 access_token_bearer = AccessTokenBearer()
 
 
-@book_router.get("/", response_model=list[BookModel], status_code=status.HTTP_200_OK, )
-async def get_all_books(session: AsyncSession = Depends(get_db_session)):
+@book_router.get("/", response_model=list[BookModel], status_code=status.HTTP_200_OK)
+async def get_all_books(session: AsyncSession = Depends(get_db_session), user_details=Depends(access_token_bearer)):
     return await core_service.get_all_books(session=session)
 
 
-@book_router.get("/{book_id}",response_model=BookModel, status_code=status.HTTP_200_OK)
+@book_router.get("/{book_id}", response_model=BookModel, status_code=status.HTTP_200_OK)
 async def get_a_book(book_id: str, session: AsyncSession = Depends(get_db_session)):
     return await core_service.get_a_book(book_id, session=session)
 
