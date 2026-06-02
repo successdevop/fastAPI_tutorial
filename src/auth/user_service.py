@@ -11,6 +11,8 @@ from sqlmodel import select
 
 class UserService:
     async def create_user(self, user_data: UserCreatedModel, session: AsyncSession):
+        print(user_data, "POINT A")
+    
         user_data_dict = user_data.model_dump()
 
         sql_statement = select(User).where(User.email == user_data_dict.get("email"))
@@ -29,10 +31,10 @@ class UserService:
                                 status_code=status.HTTP_401_UNAUTHORIZED)
 
         new_user = User(**user_data_dict)
-        print(new_user)
+        print(new_user, "POINT B")
 
         new_user.password_hash = UtilsService().hash_password_method(user_data_dict.get("password_hash"))
-        print(new_user.password_hash)
+        print(new_user.password_hash, "POINT C")
 
         try:
             session.add(new_user)

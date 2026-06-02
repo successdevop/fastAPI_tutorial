@@ -11,7 +11,7 @@ class UserModel(BaseModel):
     last_name: str
     is_verified: bool
     is_deleted: bool
-    password_hash: str
+    password_hash: str = Field(exclude=True)
     created_at: datetime
     updated_at: datetime
 
@@ -26,8 +26,8 @@ class UserModel(BaseModel):
 class UserCreatedModel(BaseModel):
     username: str = Field(max_length=8)
     email: str = Field(max_length=50)
-    first_name: str
-    last_name: str
+    first_name: str = Field(max_length=255)
+    last_name: str = Field(max_length=255)
     password_hash: str = Field(min_length=8)
 
 
