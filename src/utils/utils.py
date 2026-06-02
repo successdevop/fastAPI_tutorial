@@ -25,7 +25,8 @@ class UtilsService:
     def generate_access_token(user_data: dict, expiry: timedelta = None, refresh: bool = False) -> str:
         payload = {
             "user": user_data,
-            "expiry_time": datetime.now() + (expiry if expiry is not None else timedelta(seconds=UtilsService.ACCESS_TOKEN_EXPIRY)),
+            "expiry_time": (datetime.now() + (
+                expiry if expiry is not None else timedelta(seconds=UtilsService.ACCESS_TOKEN_EXPIRY))).isoformat(),
             "jti": str(uuid.uuid4()),
             "refresh_token": refresh
         }
