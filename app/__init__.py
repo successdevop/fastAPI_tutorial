@@ -1,6 +1,7 @@
 from typing import Any
 from fastapi import FastAPI, HTTPException, status
 from scalar_fastapi import get_scalar_api_reference
+from app.schemas import Shipment, ShipmentStatus
 
 
 app = FastAPI()
@@ -47,9 +48,9 @@ def get_latest_shipment() -> dict[str, Any]:
 
 
 @app.post("/shipment")
-def submit_shipment(data: dict) -> dict[str, int]:
-    content = data["content"]
-    weight = data["weight"]
+def submit_shipment(data: Shipment) -> dict[str, int]:
+    content = data.content
+    weight = data.weight
 
     if weight > 300:
         raise HTTPException(
@@ -97,26 +98,22 @@ def updated_replace_shipment(id: int, request_body: dict) -> dict[str, Any]:
 
 
 @app.patch("/shipment")
-def patch_shipment(id: int, req_body: dict) -> dict[str, Any]:
+def patch_shipment(id: int, req_body: Shipment) -> dict[str, Any]:
+
     if id not in shipment_db:
         raise HTTPException(
             detail="ID not found",
             status_code=status.HTTP_404_NOT_FOUND
         )
 
-    shipment = shipment_db[id]
-    if "weight" in req_body:
-        shipment["weight"] = req_body["weight"]
-    if "content" in req_body:
-        shipment["content"] = req_body["content"]
-    if "status" in req_body:
-        shipment["status"] = req_body["status"]
+    if req_body.content:
+        shipment_db[id]["content"] = req_body.content
+    if req_body.weight:
+        shipment_db[id]["weight"] = req_body.weight
+    if req_body.status:
+        shipment_db[id]["status"] = req_body.status
 
-    return shipment
-    # for k, v in shipment.items():
-    #     setattr(req_body, k, v)
-    #
-    # return shipment
+    return shipment_db[id]
 
 
 @app.delete("/shipment")
