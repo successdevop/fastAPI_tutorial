@@ -1,16 +1,17 @@
 from enum import Enum
+from random import randint
 
 from pydantic import BaseModel, Field
 
 
-class ShipmentStatus(Enum):
-    PLACED = "places"
+class ShipmentStatus(str, Enum):
+    PLACED = "placed"
     IN_TRANSIT = "in_transit"
     OUT_OF_DELIVERY = "out_of_delivery"
     DELIVERED = "delivered"
 
 
-class Shipment(BaseModel):
+class BaseShipment(BaseModel):
     content: str = Field(
         description="The contents of the shipment",
         max_length=30
@@ -20,7 +21,19 @@ class Shipment(BaseModel):
         le=25,
         ge=1
     )
-    status: str | None = Field(
+    destination: int = Field(
         description="Destination zipcode",
-        default=None
+        default_factory=lambda : randint(1111, 2111)
     )
+
+
+class ShipmentRead(BaseShipment):
+    status: ShipmentStatus
+
+
+class ShipmentCreate(BaseShipment):
+    pass
+
+
+class ShipmentUpdate(BaseModel):
+    status: ShipmentStatus

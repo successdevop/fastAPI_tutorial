@@ -1,7 +1,7 @@
 from typing import Any
 from fastapi import FastAPI, HTTPException, status
 from scalar_fastapi import get_scalar_api_reference
-from app.schemas import Shipment, ShipmentStatus
+from app.schemas import BaseShipment, ShipmentRead, ShipmentCreate, ShipmentUpdate
 
 
 app = FastAPI()
@@ -41,22 +41,16 @@ shipment_db = {
 }
 
 
-@app.get("/shipment/latest")
-def get_latest_shipment() -> dict[str, Any]:
-    id = max(shipment_db.keys())
-    return shipment_db[id]
+@app.get("/shipment/latest", response_model=ShipmentRead, status_code=status.HTTP_200_OK)
+def get_latest_shipment():
+    ship_id = max(shipment_db.keys())
+    return shipment_db[ship_id]
 
 
-@app.post("/shipment")
-def submit_shipment(data: Shipment) -> dict[str, int]:
+@app.post("/shipment", response_model=ShipmentRead, status_code=status.HTTP_200_OK)
+def submit_shipment(data: ShipmentCreate):
     content = data.content
     weight = data.weight
-
-    if weight > 300:
-        raise HTTPException(
-            detail="Maximum weight limit is 300 kgs",
-            status_code=status.HTTP_406_NOT_ACCEPTABLE
-        )
 
     ship_id = max(shipment_db.keys()) + 1
     shipment_db[ship_id] = {
@@ -65,62 +59,55 @@ def submit_shipment(data: Shipment) -> dict[str, int]:
         "status": "placed"
     }
 
-    return {"id": ship_id}
+    return shipment_db[ship_id]
 
 
-@app.get("/shipment/{field}")
-def get_shipment_field(field: str, id: int) -> dict[str, Any]:
+@app.get("/shipment/{field}", response_model=ShipmentRead, status_code=status.HTTP_200_OK)
+def get_shipment_field(field: str, ship_id: int) -> dict[str, Any]:
     return {
-        field: shipment_db[id][field]
+        field: shipment_db[ship_id][field]
     }
 
 
-@app.get("/shipment")
-def get_shipment(id: int) -> dict[str, Any]:
-    if id not in shipment_db:
+@app.get("/shipment", response_model=ShipmentRead, status_code=status.HTTP_200_OK)
+def get_shipment(ship_id: int):
+    if ship_id not in shipment_db:
         raise HTTPException(
-            detail=f"shipment with id {id} not found",
-            status_code=status.HTTP_404_NOT_FOUND
-        )
-    return shipment_db[id]
-
-@app.put("/shipment/{id}")
-def updated_replace_shipment(id: int, request_body: dict) -> dict[str, Any]:
-
-    if id not in shipment_db:
-        raise HTTPException(
-            detail="ID not found",
+            detail=f"shipment with id {ship_id} not found",
             status_code=status.HTTP_404_NOT_FOUND
         )
 
-    shipment_db[id] = request_body
-    return shipment_db[id]
+    return shipment_db[ship_id]
 
+@app.put("/shipment/{ship_id}", response_model=ShipmentRead, status_code=status.HTTP_200_OK)
+def updated_replace_shipment(ship_id: int, request_body: ShipmentRead):
 
-@app.patch("/shipment")
-def patch_shipment(id: int, req_body: Shipment) -> dict[str, Any]:
-
-    if id not in shipment_db:
+    if ship_id not in shipment_db:
         raise HTTPException(
             detail="ID not found",
             status_code=status.HTTP_404_NOT_FOUND
         )
 
-    if req_body.content:
-        shipment_db[id]["content"] = req_body.content
-    if req_body.weight:
-        shipment_db[id]["weight"] = req_body.weight
-    if req_body.status:
-        shipment_db[id]["status"] = req_body.status
-
-    return shipment_db[id]
+    shipment_db[ship_id].update(request_body)
+    return shipment_db[ship_id]
 
 
-@app.delete("/shipment")
-def delete_shipment(id: int):
-    deleted_shipemnt = shipment_db.pop(id)
-    return deleted_shipemnt
+@app.patch("/shipment", response_model=ShipmentRead, status_code=status.HTTP_200_OK)
+def patch_shipment(ship_id: int, req_body: ShipmentUpdate):
 
+    if ship_id not in shipment_db:
+        raise HTTPException(
+            detail="ID not found",
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+    return shipment_db[ship_id].update(req_body)
+
+
+@app.delete("/shipment", status_code=status.HTTP_202_ACCEPTED)
+def delete_shipment(ship_id: int) -> dict[str, str]:
+    shipment_db.pop(ship_id)
+    return {"message":"Shipment deleted successfully"}
 
 
 @app.get("/scalar", include_in_schema=False)
