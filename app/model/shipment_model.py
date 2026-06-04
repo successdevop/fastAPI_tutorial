@@ -1,7 +1,13 @@
 import uuid
+from datetime import datetime, timezone
 from enum import Enum
 
-from sqlmodel import SQLModel, Field
+from sqlalchemy.dialects.postgresql import TIMESTAMP
+from sqlmodel import SQLModel, Field, Column
+
+
+def get_current_time() -> datetime:
+    return datetime.now(tz=timezone.utc)
 
 class ShipmentStatus(str, Enum):
     PLACED = "placed"
@@ -22,6 +28,16 @@ class Shipment(SQLModel, table=True):
     weight: float = Field(nullable=False)
     Destination: int = Field(nullable=False)
     status: ShipmentStatus = Field(default=ShipmentStatus.PLACED.value)
+
+    created_at: datetime = Field(
+        default_factory=get_current_time,
+        sa_column=Column(TIMESTAMP(timezone=True), nullable=False)
+    )
+
+    updated_at: datetime = Field(
+        default_factory=get_current_time,
+        sa_column=Column(TIMESTAMP(timezone=True), nullable=False, onupdate=get_current_time)
+    )
 
     def __repr__(self):
         return f"Shipment<(id:{self.ship_id} | status:{self.status})>"

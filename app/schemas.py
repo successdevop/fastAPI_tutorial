@@ -22,9 +22,9 @@ class BaseShipment(BaseModel):
         default_factory=lambda : randint(1111, 2111)
     )
 
-
-class ShipmentRead(BaseShipment):
-    status: ShipmentStatus
+#
+# class ShipmentRead(BaseShipment):
+#     status: ShipmentStatus
 
 
 class ShipmentCreate(BaseShipment):
