@@ -4,11 +4,7 @@ from random import randint
 from pydantic import BaseModel, Field
 
 
-class ShipmentStatus(str, Enum):
-    PLACED = "placed"
-    IN_TRANSIT = "in_transit"
-    OUT_OF_DELIVERY = "out_of_delivery"
-    DELIVERED = "delivered"
+
 
 
 class BaseShipment(BaseModel):
