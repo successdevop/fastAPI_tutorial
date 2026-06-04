@@ -31,3 +31,6 @@ from typing import Optional
 #     print("decorated!")
 #
 # log()
+
+# JWT_SECRET_KEY=2ec2fecb89f4bfcddfbd5d0d9e9cae03
+# JWT_ALGORITHM=HS256
