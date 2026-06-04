@@ -19,7 +19,7 @@ class BaseShipment(BaseModel):
     weight: float = Field(
         description="Weight of shipment in kilograms (kgs)",
         le=25,
-        ge=1
+        ge=0.1
     )
     destination: int = Field(
         description="Destination zipcode",

@@ -63,11 +63,9 @@ def submit_shipment(data: ShipmentCreate):
 
 
 @app.get("/shipment/{field}", response_model=ShipmentRead, status_code=status.HTTP_200_OK)
-def get_shipment_field(field: str, ship_id: int) -> dict[str, Any]:
-    return {
-        field: shipment_db[ship_id][field]
-    }
-
+def get_shipment_field(field: str, ship_id: int, val: str):
+    shipment_db[ship_id][field] = val
+    return shipment_db[ship_id]
 
 @app.get("/shipment", response_model=ShipmentRead, status_code=status.HTTP_200_OK)
 def get_shipment(ship_id: int):
@@ -94,6 +92,7 @@ def updated_replace_shipment(ship_id: int, request_body: ShipmentRead):
 
 @app.patch("/shipment", response_model=ShipmentRead, status_code=status.HTTP_200_OK)
 def patch_shipment(ship_id: int, req_body: ShipmentUpdate):
+    print(req_body.status.value)
 
     if ship_id not in shipment_db:
         raise HTTPException(
@@ -101,7 +100,8 @@ def patch_shipment(ship_id: int, req_body: ShipmentUpdate):
             status_code=status.HTTP_404_NOT_FOUND
         )
 
-    return shipment_db[ship_id].update(req_body)
+    shipment_db[ship_id]["status"] =req_body.status.value
+    return shipment_db[ship_id]
 
 
 @app.delete("/shipment", status_code=status.HTTP_202_ACCEPTED)
