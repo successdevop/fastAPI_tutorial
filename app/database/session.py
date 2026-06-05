@@ -23,6 +23,7 @@ AsyncSessionLocal = async_sessionmaker(
 async def create_db_tables():
     async with engine.begin() as connection:
         from app.model.shipment_model import Shipment
+        from app.model.seller_model import SellerModel
         await connection.run_sync(SQLModel.metadata.create_all)
 
 

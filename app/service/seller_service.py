@@ -48,7 +48,7 @@ class SellerService:
 
         return True, "OK"
 
-    async def create_seller_account(self, req_body: CreateSellerSchema, session: AsyncSession):
+    async def register_seller(self, req_body: CreateSellerSchema, session: AsyncSession):
         seller_data = req_body.model_dump()
         if not self._validate_email(req_body.email):
             raise HTTPException(detail="Invalid email format", status_code=status.HTTP_401_UNAUTHORIZED)
