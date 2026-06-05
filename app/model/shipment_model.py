@@ -9,6 +9,7 @@ from sqlmodel import SQLModel, Field, Column
 def get_current_time() -> datetime:
     return datetime.now(tz=timezone.utc)
 
+
 class ShipmentStatus(str, Enum):
     PLACED = "placed"
     IN_TRANSIT = "in_transit"
@@ -27,7 +28,7 @@ class Shipment(SQLModel, table=True):
     content: str = Field(nullable=False)
     weight: float = Field(nullable=False)
     Destination: int = Field(nullable=False)
-    status: ShipmentStatus = Field(default=ShipmentStatus.PLACED.value)
+    status: ShipmentStatus = Field(default=ShipmentStatus.PLACED.value, nullable=False)
 
     created_at: datetime = Field(
         default_factory=get_current_time,
