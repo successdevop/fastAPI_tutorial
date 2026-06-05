@@ -40,7 +40,6 @@ class ShipmentCreateSchema(BaseModel):
     weight: float = Field(gt=1)
 
 
-
 class ShipmentUpdateSchema(BaseModel):
     content: str | None = Field(default=None)
     weight: float | None = Field(default=None, gt=1)
