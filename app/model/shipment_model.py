@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
+from random import randint
 
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlmodel import SQLModel, Field, Column
@@ -27,8 +28,8 @@ class Shipment(SQLModel, table=True):
     )
     content: str = Field(nullable=False)
     weight: float = Field(nullable=False)
-    Destination: int = Field(nullable=False)
-    status: ShipmentStatus = Field(default=ShipmentStatus.PLACED.value, nullable=False)
+    destination: int = Field(default_factory=lambda : randint(2222, 9999), nullable=False)
+    status: ShipmentStatus = Field(default=ShipmentStatus.PLACED, nullable=False)
 
     created_at: datetime = Field(
         default_factory=get_current_time,

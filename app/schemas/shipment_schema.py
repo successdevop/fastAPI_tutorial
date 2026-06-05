@@ -1,12 +1,10 @@
 from datetime import datetime
-from random import randint
-
 from pydantic import BaseModel, Field, field_serializer
 from app.model.shipment_model import ShipmentStatus
 
 
 class BaseShipmentModel(BaseModel):
-    id: str = Field(
+    ship_id: str = Field(
         description="The shipment's unique ID"
     )
     content: str = Field(
@@ -14,11 +12,9 @@ class BaseShipmentModel(BaseModel):
     )
     weight: float = Field(
         description="Weight of shipment in kilograms (kgs)",
-        ge=1
     )
     destination: int = Field(
         description="Destination zipcode",
-        default_factory=lambda : randint(1111, 2111)
     )
     status: ShipmentStatus = Field(
         description="The shipment delivery status",
@@ -41,11 +37,12 @@ class BaseShipmentModel(BaseModel):
 
 class ShipmentCreateSchema(BaseModel):
     content: str
-    weight: float
+    weight: float = Field(gt=1)
+
 
 
 class ShipmentUpdateSchema(BaseModel):
     content: str | None = Field(default=None)
-    weight: float | None = Field(default=None)
+    weight: float | None = Field(default=None, gt=1)
     destination: int | None = Field(default=None)
     status: ShipmentStatus | None = Field(default=None)
