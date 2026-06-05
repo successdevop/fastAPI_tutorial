@@ -3,7 +3,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.model.shipment_model import Shipment
-from app.schemas.shipment_schema import ShipmentUpdateSchema
+from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSchema
 
 
 class ShipmentServices:
@@ -64,6 +64,24 @@ class ShipmentServices:
         # await session.commit()
         # await session.refresh(shipment)
         # return shipment
+
+    @staticmethod
+    async def create_a_shipment(req_body: ShipmentCreateSchema, session: AsyncSession):
+        shipment_data = req_body.model_dump()
+        new_shipment = Shipment(**shipment_data)
+
+        check_shipment = select(Shipment).where(Shipment.ship_id == new_shipment.ship_id)
+        result = await session.exec(check_shipment)
+        exist_ = result.one_or_none()
+
+        if exist_:
+            raise HTTPException(detail=f"Shipment with id {new_shipment.ship_id} already exists",
+                                status_code=status.HTTP_409_CONFLICT)
+
+        session.add(new_shipment)
+        await session.commit()
+        await session.refresh(new_shipment)
+        return new_shipment
 
 
 
