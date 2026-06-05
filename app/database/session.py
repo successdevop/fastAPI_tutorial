@@ -1,9 +1,9 @@
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlmodel import SQLModel
-from sqlalchemy.orm import sessionmaker
 
 from app.config import settings
 
@@ -11,6 +11,12 @@ from app.config import settings
 engine = create_async_engine(
     url=settings.POSTGRES_URL,
     echo=True
+)
+
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False
 )
 
 
@@ -22,14 +28,11 @@ async def create_db_tables():
 
 # session to interact with the database
 async def get_db_session():
-    async_session = sessionmaker(
-        bind=engine,
-        class_=AsyncSession,
-        expire_on_commit=False
-    )
-
-    async with async_session() as session:
-        yield session
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
 
 # session dependency annotation
 SessionDep = Annotated[AsyncSession, Depends(get_db_session)]

@@ -1,8 +1,39 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
+
+from app.api.shipment_api import shipment_router
+from app.database.session import create_db_tables, engine
 from scalar_fastapi import get_scalar_api_reference
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Server is starting...")
+    await create_db_tables()
+    print("Database tables created...")
+
+    yield
+    print("Server has been stopped")
+    await engine.dispose()
+    print("server connection closed")
+
+
+version = "v1"
+app = FastAPI(
+    title="Shipment Application",
+    description="A REST API for a web shipment service",
+    version=version,
+    lifespan=lifespan
+)
+
+app.include_router(shipment_router, prefix=f"/api/{version}/shipments", tags=["Shipments"])
+
+@app.get("/scalar", include_in_schema=False)
+def get_scalar_docs():
+    return get_scalar_api_reference(
+        openapi_url=app.openapi_url,
+        title="Scalar API"
+    )
 
 # shipment_db = {
 #
@@ -108,9 +139,3 @@ app = FastAPI()
 #     return {"message":"Shipment deleted successfully"}
 #
 #
-@app.get("/scalar", include_in_schema=False)
-def get_scalar_docs():
-    return get_scalar_api_reference(
-        openapi_url=app.openapi_url,
-        title="Scalar API"
-    )
