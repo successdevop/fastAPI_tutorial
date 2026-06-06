@@ -3,7 +3,6 @@ from typing import Tuple, Any
 
 from asyncpg import IntegrityConstraintViolationError
 from fastapi import HTTPException, status
-from fastapi.responses import JSONResponse
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -37,14 +36,17 @@ class SellerService:
 
         return True, "OK"
 
-    async def _already_exist(self, session: AsyncSession, email: str = None, username: str = None) -> Tuple[bool, str, Any]:
+    async def _already_exist(self,email: str = None, username: str = None,  session: AsyncSession = None) -> Tuple[bool, str, Any]:
         """Check if email or username already exists in database"""
+
+        if session is None:
+            raise ValueError("Session cannot be None")
 
         # Check if email exists
         if email is not None:
             email_statement = select(SellerModel).where(SellerModel.email == email)
             email_result = await session.exec(email_statement)
-            email_exists = email_result.one_or_none()
+            email_exists = email_result.first()
 
             if email_exists:
                 return True, f"Seller with email ({email}) already exists", email_exists
@@ -53,7 +55,7 @@ class SellerService:
         if username is not None:
             username_statement = select(SellerModel).where(SellerModel.user_name == username)
             username_result = await session.exec(username_statement)
-            username_exists = username_result.one_or_none()
+            username_exists = username_result.first()
 
             if username_exists:
                 return True, f"Seller with username ({username}) already exists", username_exists
@@ -89,29 +91,32 @@ class SellerService:
             await session.rollback()
             raise HTTPException(detail=error, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    async def login_func(self, email: str, password, session: AsyncSession):
+    async def login_func(self, email: str, password, session: AsyncSession) -> dict[str, Any]:
+        print(session)
+        print(type(session))
+
         _, _, seller = await self._already_exist(email=email, session=session)
 
         if seller is None or not verify_password(password=password, hashed_password=seller.password_hash):
-            raise HTTPException(detail="Invalid email or password", status_code=status.HTTP_404_NOT_FOUND)
+            raise HTTPException(detail="Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
 
         token = generate_token(
             user_data={
-                "s_id":seller.seller_id,
+                "s_username":seller.user_name,
                 "s_email":seller.email
             }
         )
 
-        return JSONResponse(
-            content={
-                "message":"Login successful",
-                "access_token":token,
-                "type":"jwt",
-                "user":{
-                    "id": seller.seller_id,
-                    "email": seller.email
-                }
+        # return token
+
+        return {
+            "message":"Login successful",
+            "access_token":token,
+            "type":"jwt",
+            "user":{
+                "id": seller.seller_id,
+                "email": seller.email
             }
-        )
+        }
 
 
