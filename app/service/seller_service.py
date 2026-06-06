@@ -1,13 +1,15 @@
 import re
-from typing import Tuple
+from typing import Tuple, Any
 
 from asyncpg import IntegrityConstraintViolationError
 from fastapi import HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.auth.auth_utils import generate_passwd_hash, verify_password, generate_token
 from app.model.seller_model import SellerModel
-from app.schemas.BaseSellerModel import CreateSellerSchema
+from app.schemas.seller_shema import CreateSellerSchema
 
 
 class SellerService:
@@ -35,21 +37,31 @@ class SellerService:
 
         return True, "OK"
 
-    async def _already_exist(self, email: str, username: str, session: AsyncSession):
-        sql_statement = select(SellerModel).where(SellerModel.email == email)
-        result = await session.exec(sql_statement)
-        user = result.one_or_none()
+    async def _already_exist(self, session: AsyncSession, email: str = None, username: str = None) -> Tuple[bool, str, Any]:
+        """Check if email or username already exists in database"""
 
-        if user:
-            return False, f"Seller with email ({email}) already exists"
+        # Check if email exists
+        if email is not None:
+            email_statement = select(SellerModel).where(SellerModel.email == email)
+            email_result = await session.exec(email_statement)
+            email_exists = email_result.one_or_none()
 
-        if user.user_name == username:
-            return False, f"Seller with user_name ({username}) already exists"
+            if email_exists:
+                return True, f"Seller with email ({email}) already exists", email_exists
 
-        return True, "OK"
+        # Check if username exists
+        if username is not None:
+            username_statement = select(SellerModel).where(SellerModel.user_name == username)
+            username_result = await session.exec(username_statement)
+            username_exists = username_result.one_or_none()
 
-    async def register_seller(self, req_body: CreateSellerSchema, session: AsyncSession):
-        seller_data = req_body.model_dump()
+            if username_exists:
+                return True, f"Seller with username ({username}) already exists", username_exists
+
+        # Neither exists
+        return False, "Not found", None
+
+    async def register_seller(self, req_body: CreateSellerSchema, session: AsyncSession) -> SellerModel:
         if not self._validate_email(req_body.email):
             raise HTTPException(detail="Invalid email format", status_code=status.HTTP_401_UNAUTHORIZED)
 
@@ -57,19 +69,49 @@ class SellerService:
         if not bool_Val:
             raise HTTPException(detail=str_Val, status_code=status.HTTP_401_UNAUTHORIZED)
 
-        exist_, exist_val = await self._already_exist(email=req_body.email, username=req_body.user_name, session=session)
+        exist_, exist_val, _ = await self._already_exist(email=req_body.email, username=req_body.user_name, session=session)
         if exist_:
             raise HTTPException(detail=exist_val, status_code=status.HTTP_409_CONFLICT)
 
+        seller_data = req_body.model_dump()
         new_seller = SellerModel(**seller_data)
+        new_seller.password_hash = generate_passwd_hash(req_body.password_hash)
 
         try:
             session.add(new_seller)
             await session.commit()
             await session.refresh(new_seller)
+            return new_seller
         except IntegrityConstraintViolationError as error:
             await session.rollback()
             raise HTTPException(detail=error, status_code=status.HTTP_400_BAD_REQUEST)
         except Exception as error:
             await session.rollback()
             raise HTTPException(detail=error, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    async def login_func(self, email: str, password, session: AsyncSession):
+        _, _, seller = await self._already_exist(email=email, session=session)
+
+        if seller is None or not verify_password(password=password, hashed_password=seller.password_hash):
+            raise HTTPException(detail="Invalid email or password", status_code=status.HTTP_404_NOT_FOUND)
+
+        token = generate_token(
+            user_data={
+                "s_id":seller.seller_id,
+                "s_email":seller.email
+            }
+        )
+
+        return JSONResponse(
+            content={
+                "message":"Login successful",
+                "access_token":token,
+                "type":"jwt",
+                "user":{
+                    "id": seller.seller_id,
+                    "email": seller.email
+                }
+            }
+        )
+
+
