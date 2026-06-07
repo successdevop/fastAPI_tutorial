@@ -27,7 +27,7 @@ class SellerService:
 
         if len(password) < MIN_LEN or len(password) > MAX_LEN:
             return False, f"Password must be at least {MIN_LEN} characters long and not exceed {MAX_LEN} characters"
-        if not any(c.isupper() for c in password) or not any(c.lower() for c in password):
+        if not any(c.isupper() for c in password) or not any(c.islower() for c in password):
             return False, "Password must contain at least one capital letter and one small letter"
         if not any(c.isdigit() for c in password):
             return False, "Password must contain at least one number"
@@ -92,14 +92,17 @@ class SellerService:
             raise HTTPException(detail=error, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def login_func(self, email: str, password, session: AsyncSession) -> dict[str, Any]:
+        print("checked in here")
         print(session)
         print(type(session))
+        print("Also got here")
 
         _, _, seller = await self._already_exist(email=email, session=session)
 
         if seller is None or not verify_password(password=password, hashed_password=seller.password_hash):
             raise HTTPException(detail="Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
 
+        print("I also checked validation")
         token = generate_token(
             user_data={
                 "s_username":seller.user_name,
@@ -108,13 +111,13 @@ class SellerService:
         )
 
         # return token
-
+        print("I was here before RETURN")
         return {
             "message":"Login successful",
             "access_token":token,
             "type":"jwt",
             "user":{
-                "id": seller.seller_id,
+                "id": seller.user_name,
                 "email": seller.email
             }
         }

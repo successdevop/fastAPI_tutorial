@@ -16,5 +16,11 @@ async def create_seller_account(req: CreateSellerSchema, session: SessionDep):
 
 # Login user
 @seller_router.post("/login", response_model=dict, status_code=status.HTTP_200_OK)
-async def login_seller(req_form: Annotated[OAuth2PasswordRequestForm, Depends()], session=SessionDep):
+async def login_seller(req_form: Annotated[OAuth2PasswordRequestForm, Depends()], session: SessionDep):
+    print("was here")
     return await seller_service.login_func(email=req_form.username, password=req_form.password, session=session)
+
+
+@seller_router.get("/dashboaer")
+async def get_dashboard():
+    pass

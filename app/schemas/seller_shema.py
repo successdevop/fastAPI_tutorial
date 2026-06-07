@@ -18,10 +18,6 @@ class BaseSellerSchema(BaseModel):
     class Config:
         from_attributes = True
 
-class LoginSellerModel(BaseModel):
-    email: str | None = Field(default=None)
-    password_hash: str = Field(default=None, min_length=8)
-
 
 class UpdateSellerSchema(BaseModel):
     user_name: str | None = Field(default=None, min_length=3, max_length=16)
@@ -30,6 +26,6 @@ class UpdateSellerSchema(BaseModel):
 
 
 class CreateSellerSchema(BaseModel):
-    user_name: str = Field(min_length=3, max_length=16)
+    username: str = Field(min_length=3, max_length=16)
     email: str
-    password_hash: str = Field(min_length=8)
+    password: str = Field(min_length=8)
