@@ -1,5 +1,6 @@
 import uuid
 from datetime import timedelta, datetime
+from typing import Any, Optional
 
 import jwt
 from passlib.context import CryptContext
@@ -32,3 +33,14 @@ def generate_token(user_data: dict, expiry: timedelta = None) -> str:
     )
 
     return token
+
+
+def decode_token(token: str) -> Optional[dict[str, Any]]:
+    try:
+        return jwt.decode(
+            jwt=token,
+            key=security_settings.JWT_SECRET,
+            algorithms=[security_settings.JWT_ALGORITHM]
+        )
+    except jwt.PyJWTError:
+        return None
