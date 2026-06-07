@@ -4,6 +4,7 @@ from fastapi import APIRouter, status
 from app.database.session import SessionDep
 from app.schemas.shipment_schema import BaseShipmentModel, ShipmentUpdateSchema, ShipmentCreateSchema
 from app.service.shipment import ShipmentServices
+from app.dependency.user_dependency import SellerDep
 
 
 shipment_router = APIRouter()
@@ -26,5 +27,5 @@ async def delete_a_shipment(s_id: str, session: SessionDep):
     return await shipment_service.delete_a_shipment(s_id=s_id, session=session)
 
 @shipment_router.post("/", response_model=BaseShipmentModel, status_code=status.HTTP_201_CREATED)
-async def create_new_shipment(req: ShipmentCreateSchema, session: SessionDep):
+async def create_new_shipment(seller: SellerDep, req: ShipmentCreateSchema, session: SessionDep):
     return await shipment_service.create_a_shipment(req_body=req, session=session)

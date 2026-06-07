@@ -67,17 +67,17 @@ class SellerService:
         if not self._validate_email(req_body.email):
             raise HTTPException(detail="Invalid email format", status_code=status.HTTP_401_UNAUTHORIZED)
 
-        bool_Val, str_Val = self._validate_password(req_body.password_hash)
+        bool_Val, str_Val = self._validate_password(req_body.password)
         if not bool_Val:
             raise HTTPException(detail=str_Val, status_code=status.HTTP_401_UNAUTHORIZED)
 
-        exist_, exist_val, _ = await self._already_exist(email=req_body.email, username=req_body.user_name, session=session)
+        exist_, exist_val, _ = await self._already_exist(email=req_body.email, username=req_body.username, session=session)
         if exist_:
             raise HTTPException(detail=exist_val, status_code=status.HTTP_409_CONFLICT)
 
         seller_data = req_body.model_dump()
         new_seller = SellerModel(**seller_data)
-        new_seller.password_hash = generate_passwd_hash(req_body.password_hash)
+        new_seller.password_hash = generate_passwd_hash(req_body.password)
 
         try:
             session.add(new_seller)
@@ -92,26 +92,18 @@ class SellerService:
             raise HTTPException(detail=error, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def login_func(self, email: str, password, session: AsyncSession) -> dict[str, Any]:
-        print("checked in here")
-        print(session)
-        print(type(session))
-        print("Also got here")
-
         _, _, seller = await self._already_exist(email=email, session=session)
 
         if seller is None or not verify_password(password=password, hashed_password=seller.password_hash):
             raise HTTPException(detail="Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
 
-        print("I also checked validation")
         token = generate_token(
             user_data={
-                "s_username":seller.user_name,
-                "s_email":seller.email
+                "id":seller.seller_id,
+                "username":seller.user_name
             }
         )
 
-        # return token
-        print("I was here before RETURN")
         return {
             "message":"Login successful",
             "access_token":token,
