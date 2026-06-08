@@ -5,10 +5,12 @@ from asyncpg import IntegrityConstraintViolationError
 from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+from app.database.redis_conn import add_jti_to_blacklist
 
 from app.auth.auth_utils import generate_passwd_hash, verify_password, generate_token
 from app.model.seller_model import SellerModel
 from app.schemas.seller_shema import CreateSellerSchema
+
 
 
 class SellerService:
@@ -110,5 +112,6 @@ class SellerService:
             "type":"jwt"
         }
 
-    async def logout(self, token_data: Annotated[dict, Depends(get_access_token)]):
-        token_data["jti"]
+    async def logout(self, token_data: dict):
+        await add_jti_to_blacklist(jti=token_data["jti"])
+        return {"message":"Successfully logged out"}

@@ -6,11 +6,12 @@ from app.auth.auth_utils import decode_token
 from app.database.session import SessionDep
 from app.model.seller_model import SellerModel
 from app.security.security import oauth2_scheme
+from app.database.redis_conn import is_jti_blacklisted
 
 
-def get_access_token(token: Annotated[str, Depends(oauth2_scheme)]):
+async def get_access_token(token: Annotated[str, Depends(oauth2_scheme)]):
     data = decode_token(token)
-    if data is None:
+    if data is None or await is_jti_blacklisted(jti=data["jti"]):
         raise HTTPException(
             detail="Invalid or expired access token",
             status_code=status.HTTP_401_UNAUTHORIZED

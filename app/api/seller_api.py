@@ -24,4 +24,4 @@ async def login_seller(req_form: Annotated[OAuth2PasswordRequestForm, Depends()]
 
 @seller_router.get("/logout")
 async def logout_seller(token_data: Annotated[dict, Depends(get_access_token)]):
-    pass
+    return await seller_service.logout(token_data=token_data)

@@ -9,4 +9,5 @@ sqlalchemy
 alembic
 passlib
 pyjwt
+redis[hiredis]
 scalar-fastapi
