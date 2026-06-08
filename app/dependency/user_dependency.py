@@ -12,7 +12,7 @@ def get_access_token(token: Annotated[str, Depends(oauth2_scheme)]):
     data = decode_token(token)
     if data is None:
         raise HTTPException(
-            detail="Invalid access token",
+            detail="Invalid or expired access token",
             status_code=status.HTTP_401_UNAUTHORIZED
         )
     return data

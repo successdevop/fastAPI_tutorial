@@ -107,11 +107,8 @@ class SellerService:
         return {
             "message":"Login successful",
             "access_token":token,
-            "type":"jwt",
-            "user":{
-                "id": seller.user_name,
-                "email": seller.email
-            }
+            "type":"jwt"
         }
 
-
+    async def logout(self, token_data: Annotated[dict, Depends(get_access_token)]):
+        token_data["jti"]

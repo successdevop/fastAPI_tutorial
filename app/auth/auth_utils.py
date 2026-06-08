@@ -1,5 +1,5 @@
 import uuid
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from typing import Any, Optional
 
 import jwt
@@ -18,11 +18,11 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 
 def generate_token(user_data: dict, expiry: timedelta = None) -> str:
-    access_token_expiry: int = 3600
+    access_token_expiry: int = 1800
 
     payload = {
         "user":user_data,
-        "exp_time": (datetime.now() + (expiry if expiry is not None else timedelta(seconds=access_token_expiry))).isoformat(),
+        "exp": datetime.now(timezone.utc) + (expiry if expiry is not None else timedelta(seconds=access_token_expiry)),
         "jti": str(uuid.uuid4())
     }
 
