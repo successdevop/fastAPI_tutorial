@@ -4,7 +4,9 @@ from enum import Enum
 from random import randint
 
 from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlmodel import SQLModel, Field, Column
+from sqlmodel import Relationship, SQLModel, Field, Column
+
+from app.model.seller_model import SellerModel
 
 
 def get_current_time() -> datetime:
@@ -40,6 +42,8 @@ class Shipment(SQLModel, table=True):
         default_factory=get_current_time,
         sa_column=Column(TIMESTAMP(timezone=True), nullable=False, onupdate=get_current_time)
     )
+    seller_id: str = Field(foreign_key="seller.seller_id")
+    seller: SellerModel = Relationship(back_populates="shipments")
 
     def __repr__(self):
         return f"Shipment<(id:{self.ship_id} | status:{self.status})>"
