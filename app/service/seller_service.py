@@ -65,6 +65,10 @@ class SellerService:
         # Neither exists
         return False, "Not found", None
 
+    async def get_all_sellers(self, session: AsyncSession):
+        result = await session.exec(select(SellerModel))
+        return result.all()
+
     async def register_seller(self, req_body: CreateSellerSchema, session: AsyncSession) -> SellerModel:
         if not self._validate_email(req_body.email):
             raise HTTPException(detail="Invalid email format", status_code=status.HTTP_401_UNAUTHORIZED)
@@ -78,8 +82,8 @@ class SellerService:
             raise HTTPException(detail=exist_val, status_code=status.HTTP_409_CONFLICT)
 
         seller_data = req_body.model_dump()
-        new_seller = SellerModel(**seller_data)
-        new_seller.password_hash = generate_passwd_hash(req_body.password)
+        new_seller = SellerModel(**seller_data, user_name=seller_data["username"])
+        new_seller.password_hash = generate_passwd_hash(seller_data["password"])
 
         try:
             session.add(new_seller)

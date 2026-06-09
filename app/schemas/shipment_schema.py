@@ -26,6 +26,9 @@ class BaseShipmentModel(BaseModel):
     updated_at: datetime = Field(
         description="Time at which an existing shipment was updated"
     )
+    seller_id: str = Field(
+        description="ID of the creator of the shipment"
+    )
 
     @field_serializer("created_at", "updated_at")
     def serialize_datetime(self, dt: datetime) -> str:

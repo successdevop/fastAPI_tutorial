@@ -1,11 +1,12 @@
-from typing import List
+from typing import List, TYPE_CHECKING
 import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlmodel import Relationship, SQLModel, Field, Column
 
-from app.model.shipment_model import Shipment
+if TYPE_CHECKING:
+    from app.model.shipment_model import Shipment
 
 
 class SellerModel(SQLModel, table=True):
@@ -24,5 +25,5 @@ class SellerModel(SQLModel, table=True):
         default_factory=lambda : datetime.now(tz=timezone.utc),
         sa_column=Column(TIMESTAMP(timezone=True), nullable=False, onupdate=lambda : datetime.now(tz=timezone.utc))
     )
-    shipments: List[Shipment] = Relationship(back_populates="seller")
+    shipments: List["Shipment"] = Relationship(back_populates="seller", sa_relationship_kwargs={"lazy":"selectin"})
     

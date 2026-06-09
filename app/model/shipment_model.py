@@ -2,11 +2,13 @@ import uuid
 from datetime import datetime, timezone
 from enum import Enum
 from random import randint
+from typing import TYPE_CHECKING
 
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlmodel import Relationship, SQLModel, Field, Column
 
-from app.model.seller_model import SellerModel
+if TYPE_CHECKING:
+    from app.model.seller_model import SellerModel
 
 
 def get_current_time() -> datetime:
@@ -21,7 +23,7 @@ class ShipmentStatus(str, Enum):
 
 
 class Shipment(SQLModel, table=True):
-    __tablename__ = "shipment_table"
+    __tablename__ = "shipment"
     ship_id: str = Field(
         default_factory=lambda : str(uuid.uuid4()),
         primary_key=True,
@@ -43,7 +45,7 @@ class Shipment(SQLModel, table=True):
         sa_column=Column(TIMESTAMP(timezone=True), nullable=False, onupdate=get_current_time)
     )
     seller_id: str = Field(foreign_key="seller.seller_id")
-    seller: SellerModel = Relationship(back_populates="shipments")
+    seller: "SellerModel" = Relationship(back_populates="shipments", sa_relationship_kwargs={"lazy":"selectin"})
 
     def __repr__(self):
         return f"Shipment<(id:{self.ship_id} | status:{self.status})>"
