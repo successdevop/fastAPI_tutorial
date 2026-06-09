@@ -1,0 +1,34 @@
+import uuid
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+from sqlalchemy import Column, INTEGER, ARRAY
+from sqlalchemy.dialects.postgresql import TIMESTAMP
+from sqlmodel import Field, Relationship
+
+from app.model.base_model import User
+
+if TYPE_CHECKING:
+    from app.model.shipment_model import Shipment
+
+
+class DeliveryPartner(User, table=True):
+    __tablename__ = "delivery_partner"
+
+    dlv_id: str = Field(
+        default_factory=lambda : str(uuid.uuid4()),
+        primary_key=True,
+        nullable=False,
+        index=True)
+
+    serviceable_zip_codes: list[int] = Field(
+        sa_column=Column(ARRAY(INTEGER))
+    )
+
+    max_handling_capacity: int
+
+    created_at: datetime = Field(
+        default_factory=lambda : datetime.now(tz=timezone.utc),
+        sa_column=Column(TIMESTAMP(timezone=True), nullable=False))
+
+    shipments: "Shipment" = Relationship(back_populates="delivery")

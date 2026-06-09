@@ -3,19 +3,17 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlmodel import Relationship, SQLModel, Field, Column
+from sqlmodel import Relationship, Field, Column
+from app.model.base_model import User
 
 if TYPE_CHECKING:
     from app.model.shipment_model import Shipment
 
 
-class SellerModel(SQLModel, table=True):
+class SellerModel(User, table=True):
     __tablename__ = "seller"
     seller_id: str = Field(default_factory=lambda : str(uuid.uuid4()), primary_key=True,
                            nullable=False, index=True)
-    user_name: str = Field(nullable=False, unique=True, index=True, min_length=3, max_length=16)
-    email: str = Field(nullable=False, index=True, unique=True)
-    password_hash: str = Field(nullable=False)
 
     created_at: datetime = Field(
         default_factory=lambda : datetime.now(tz=timezone.utc),
