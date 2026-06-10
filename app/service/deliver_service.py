@@ -8,7 +8,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.database.redis_conn import add_jti_to_blacklist
 
 from app.auth.auth_utils import generate_passwd_hash, verify_password, generate_token
-from app.model.seller_model import DeliveryPartner
+from app.model.delivery_model import DeliveryPartner
 from app.schemas.seller_shema import CreateSellerSchema
 
 
@@ -38,7 +38,7 @@ class SellerService:
 
         return True, "OK"
 
-    async def _already_exist(self,email: str = None, username: str = None,  session: AsyncSession = None) -> Tuple[bool, str, Any]:
+    async def _partner_already_exist(self, email: str = None, username: str = None, session: AsyncSession = None) -> Tuple[bool, str, Any]:
         """Check if email or username already exists in database"""
 
         if session is None:
@@ -65,11 +65,11 @@ class SellerService:
         # Neither exists
         return False, "Not found", None
 
-    async def get_all_sellers(self, session: AsyncSession):
+    async def get_all_delivery_partners(self, session: AsyncSession):
         result = await session.exec(select(DeliveryPartner))
         return result.all()
 
-    async def register_seller(self, req_body: CreateSellerSchema, session: AsyncSession) -> DeliveryPartner:
+    async def register_delivery_partner(self, req_body: CreateSellerSchema, session: AsyncSession) -> DeliveryPartner:
         if not self._validate_email(req_body.email):
             raise HTTPException(detail="Invalid email format", status_code=status.HTTP_401_UNAUTHORIZED)
 
@@ -77,19 +77,19 @@ class SellerService:
         if not bool_Val:
             raise HTTPException(detail=str_Val, status_code=status.HTTP_401_UNAUTHORIZED)
 
-        exist_, exist_val, _ = await self._already_exist(email=req_body.email, username=req_body.username, session=session)
+        exist_, exist_val, _ = await self._partner_already_exist(email=req_body.email, username=req_body.username, session=session)
         if exist_:
             raise HTTPException(detail=exist_val, status_code=status.HTTP_409_CONFLICT)
 
-        seller_data = req_body.model_dump()
-        new_seller = DeliveryPartner(**seller_data, user_name=seller_data["username"])
-        new_seller.password_hash = generate_passwd_hash(seller_data["password"])
+        partner_data = req_body.model_dump()
+        new_partner = DeliveryPartner(**partner_data, user_name=partner_data["username"])
+        new_partner.password_hash = generate_passwd_hash(partner_data["password"])
 
         try:
-            session.add(new_seller)
+            session.add(new_partner)
             await session.commit()
-            await session.refresh(new_seller)
-            return new_seller
+            await session.refresh(new_partner)
+            return new_partner
         except IntegrityConstraintViolationError as error:
             await session.rollback()
             raise HTTPException(detail=error, status_code=status.HTTP_400_BAD_REQUEST)
@@ -98,15 +98,14 @@ class SellerService:
             raise HTTPException(detail=error, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def login_func(self, email: str, password, session: AsyncSession) -> dict[str, Any]:
-        _, _, seller = await self._already_exist(email=email, session=session)
+        _, _, d_partner = await self._partner_already_exist(email=email, session=session)
 
-        if seller is None or not verify_password(password=password, hashed_password=seller.password_hash):
+        if d_partner is None or not verify_password(password=password, hashed_password=d_partner.password_hash):
             raise HTTPException(detail="Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
 
         token = generate_token(
             user_data={
-                "id":seller.seller_id,
-                "username":seller.user_name
+                "id":d_partner.dlv_id,
             }
         )
 

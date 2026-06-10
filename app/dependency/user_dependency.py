@@ -4,7 +4,7 @@ from fastapi import Depends, HTTPException, status
 
 from app.auth.auth_utils import decode_token
 from app.database.session import SessionDep
-from app.model.seller_model import SellerModel
+from app.model.seller_model import DeliveryPartner
 from app.security.security import oauth2_scheme
 from app.database.redis_conn import is_jti_blacklisted
 
@@ -20,7 +20,7 @@ async def get_access_token(token: Annotated[str, Depends(oauth2_scheme)]):
 
 
 async def get_current_seller(token_data: Annotated[dict, Depends(get_access_token)], session: SessionDep):
-    return await session.get(SellerModel, token_data["user"]["id"])
+    return await session.get(DeliveryPartner, token_data["user"]["id"])
 
 
-SellerDep = Annotated[SellerModel, Depends(get_current_seller)]
+SellerDep = Annotated[DeliveryPartner, Depends(get_current_seller)]

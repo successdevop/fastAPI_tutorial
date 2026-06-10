@@ -35,7 +35,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_delivery_partner_dlv_id'), 'delivery_partner', ['dlv_id'], unique=False)
     op.create_index(op.f('ix_delivery_partner_email'), 'delivery_partner', ['email'], unique=True)
     op.create_index(op.f('ix_delivery_partner_user_name'), 'delivery_partner', ['user_name'], unique=True)
-    op.add_column('shipment', sa.Column('del_partner_id', sqlmodel.sql.sqltypes.AutoString(), nullable=False))
+    op.add_column('shipment', sa.Column('del_partner_id', sqlmodel.sql.sqltypes.AutoString(), nullable=True))
     op.create_foreign_key(None, 'shipment', 'delivery_partner', ['del_partner_id'], ['dlv_id'])
     # ### end Alembic commands ###
 

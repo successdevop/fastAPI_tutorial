@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.model.seller_model import SellerModel
+from app.model.seller_model import DeliveryPartner
 from app.model.shipment_model import Shipment
 from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSchema
 
@@ -67,7 +67,7 @@ class ShipmentServices:
         # return shipment
 
     @staticmethod
-    async def create_a_shipment(req_body: ShipmentCreateSchema, session: AsyncSession, seller: SellerModel):
+    async def create_a_shipment(req_body: ShipmentCreateSchema, session: AsyncSession, seller: DeliveryPartner):
             
         shipment_data = req_body.model_dump()
         new_shipment = Shipment(**shipment_data, seller_id=seller.seller_id)

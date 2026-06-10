@@ -2,14 +2,14 @@ import uuid
 from datetime import datetime, timezone
 from enum import Enum
 from random import randint
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlmodel import Relationship, SQLModel, Field, Column
 
 
 if TYPE_CHECKING:
-    from app.model.seller_model import SellerModel
+    from app.model.seller_model import DeliveryPartner
     from app.model.delivery_model import DeliveryPartner
 
 
@@ -50,9 +50,9 @@ class Shipment(SQLModel, table=True):
     )
 
     seller_id: str = Field(foreign_key="seller.seller_id")
-    seller: "SellerModel" = Relationship(back_populates="shipments", sa_relationship_kwargs={"lazy":"selectin"})
+    seller: "DeliveryPartner" = Relationship(back_populates="shipments", sa_relationship_kwargs={"lazy": "selectin"})
 
-    del_partner_id: str = Field(foreign_key="delivery_partner.dlv_id")
+    del_partner_id: Optional[str] = Field(default=None, foreign_key="delivery_partner.dlv_id")
     delivery: "DeliveryPartner" = Relationship(back_populates="shipments", sa_relationship_kwargs={"lazy":"selectin"})
 
     def __repr__(self):
