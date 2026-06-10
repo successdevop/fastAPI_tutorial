@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel, Field, field_serializer
 from app.model.shipment_model import ShipmentStatus
 
@@ -44,7 +46,7 @@ class ShipmentCreateSchema(BaseModel):
 
 
 class ShipmentUpdateSchema(BaseModel):
-    content: str | None = Field(default=None)
-    weight: float | None = Field(default=None, gt=1)
-    destination: int | None = Field(default=None)
-    status: ShipmentStatus | None = Field(default=None)
+    content: Optional[str] = Field(default=None)
+    weight: Optional[float] = Field(default=None, gt=1)
+    destination: Optional[int] = Field(default=None)
+    status: Optional[ShipmentStatus] = Field(default=None)

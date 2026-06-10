@@ -35,7 +35,7 @@ class Shipment(SQLModel, table=True):
     )
 
     content: str = Field(nullable=False)
-    weight: float | int = Field(nullable=False)
+    weight: float = Field(nullable=False)
     destination: int = Field(default_factory=lambda : randint(2222, 9999), nullable=False)
     status: ShipmentStatus = Field(default=ShipmentStatus.PLACED, nullable=False)
 

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, field_serializer, Field
 
@@ -20,9 +21,9 @@ class BaseSellerSchema(BaseModel):
 
 
 class UpdateSellerSchema(BaseModel):
-    user_name: str | None = Field(default=None, min_length=3, max_length=16)
-    email: str | None = Field(default=None)
-    password_hash: str = Field(default=None, min_length=8)
+    username: Optional[str] = Field(default=None, min_length=3, max_length=16)
+    email: Optional[str] = Field(default=None)
+    password: Optional[str] = Field(default=None, min_length=8)
 
 
 class CreateSellerSchema(BaseModel):

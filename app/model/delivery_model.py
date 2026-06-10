@@ -31,4 +31,4 @@ class DeliveryPartner(User, table=True):
         default_factory=lambda : datetime.now(tz=timezone.utc),
         sa_column=Column(TIMESTAMP(timezone=True), nullable=False))
 
-    shipments: "Shipment" = Relationship(back_populates="delivery")
+    shipments: list["Shipment"] = Relationship(back_populates="delivery", sa_relationship_kwargs={"lazy":"selectin"})
