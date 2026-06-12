@@ -14,30 +14,6 @@ from app.schemas.seller_shema import CreateSellerSchema
 
 
 class SellerService:
-    def _validate_email(self, email: str) -> bool:
-        """Simple email validation"""
-        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        return bool(re.match(pattern, email))
-
-    def _validate_password(self, password: str) -> Tuple[bool, str]:
-        """Simple password validation (at least 8 chars, 1 number, 1 capital letter, 1 small letter, 1 special char)"""
-        MIN_LEN = 8
-        MAX_LEN = 128
-
-        # Special characters allowed
-        SPECIAL_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?"
-
-        if len(password) < MIN_LEN or len(password) > MAX_LEN:
-            return False, f"Password must be at least {MIN_LEN} characters long and not exceed {MAX_LEN} characters"
-        if not any(c.isupper() for c in password) or not any(c.islower() for c in password):
-            return False, "Password must contain at least one capital letter and one small letter"
-        if not any(c.isdigit() for c in password):
-            return False, "Password must contain at least one number"
-        if not any(c in SPECIAL_CHARS for c in password):
-            return False, "Password must contain at least one special character"
-
-        return True, "OK"
-
     async def _already_exist(self,email: str = None, username: str = None,  session: AsyncSession = None) -> Tuple[bool, str, Any]:
         """Check if email or username already exists in database"""
 
