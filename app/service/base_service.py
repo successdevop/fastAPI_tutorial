@@ -1,9 +1,10 @@
+from typing import Type
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 class BaseService:
-    def __init__(self, model: SQLModel, session: AsyncSession):
+    def __init__(self, model: Type[SQLModel], session: AsyncSession):
         self.model = model
         self.session = session
 
@@ -19,5 +20,6 @@ class BaseService:
     async def _update(self, entity: SQLModel):
         return await self._add(entity=entity)
 
-    async def delete(self, entity: SQLModel):
+    async def _delete(self, entity: SQLModel):
         await self.session.delete(entity)
+        await self.session.commit()

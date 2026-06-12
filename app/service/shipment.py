@@ -2,52 +2,41 @@ from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.model.seller_model import DeliveryPartner
+from app.model.seller_model import Seller
 from app.model.shipment_model import Shipment
 from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSchema
+from app.service.base_service import BaseService
 
 
-class ShipmentServices:
+class ShipmentServices(BaseService):
+    def __init__(self, session: AsyncSession):
+        super().__init__(Shipment, session=session)
 
-    @staticmethod
-    async def get_all_shipments(session: AsyncSession):
-        sql_statement = select(Shipment)
-        result = await session.exec(sql_statement)
+    async def get_all_shipments(self):
+        sql_statement = select(self.model)
+        result = await self.session.exec(sql_statement)
         shipments = result.all()
 
         if not shipments:
             raise HTTPException(detail="No shipments record found",status_code=status.HTTP_404_NOT_FOUND)
         return shipments
 
-    @staticmethod
-    async def get_a_shipment(s_id: str, session: AsyncSession):
-        sql_statement = select(Shipment).where(Shipment.ship_id == s_id)
-        result = await session.exec(sql_statement)
-        shipment = result.one_or_none()
-
+    async def get_a_shipment(self, s_id: str):
+        shipment = await self._get(uid=s_id)
         if not shipment:
             raise HTTPException(detail=f"Shipment with id {s_id} not found",status_code=status.HTTP_404_NOT_FOUND)
         return shipment
 
-    @staticmethod
-    async def delete_a_shipment(s_id: str, session: AsyncSession):
-        sql_statement = select(Shipment).where(Shipment.ship_id == s_id)
-        result = await session.exec(sql_statement)
-        shipment = result.one_or_none()
-
+    async def delete_a_shipment(self, s_id: str):
+        shipment = await self._get(uid=s_id)
         if not shipment:
             raise HTTPException(detail=f"Shipment with id {s_id} not found",status_code=status.HTTP_404_NOT_FOUND)
 
-        await session.delete(shipment)
-        await session.commit()
+        await self._delete(shipment)
         return {"message":f"Shipment with id {s_id} deleted successfully"}
 
-    @staticmethod
-    async def update_a_shipment(s_id: str, req_body:ShipmentUpdateSchema, session: AsyncSession):
-        sql_statement = select(Shipment).where(Shipment.ship_id == s_id)
-        result = await session.exec(sql_statement)
-        shipment = result.one_or_none()
-
+    async def update_a_shipment(self, s_id: str, req_body:ShipmentUpdateSchema):
+        shipment = await self._get(uid=s_id)
         if not shipment:
             raise HTTPException(detail=f"Shipment with id {s_id} not found",status_code=status.HTTP_404_NOT_FOUND)
 
@@ -55,10 +44,7 @@ class ShipmentServices:
         for k, v in shipment_data.items():
             setattr(shipment, k, v)
 
-        session.add(shipment)
-        await session.commit()
-        await session.refresh(shipment)
-        return shipment
+        await self._update(shipment)
 
         # shipment.update(shipment_data)
         # session.add(shipment)
@@ -66,16 +52,11 @@ class ShipmentServices:
         # await session.refresh(shipment)
         # return shipment
 
-    @staticmethod
-    async def create_a_shipment(req_body: ShipmentCreateSchema, session: AsyncSession, seller: DeliveryPartner):
-            
+    async def create_a_shipment(self, req_body: ShipmentCreateSchema, seller: Seller):
         shipment_data = req_body.model_dump()
         new_shipment = Shipment(**shipment_data, seller_id=seller.seller_id)
 
-        session.add(new_shipment)
-        await session.commit()
-        await session.refresh(new_shipment)
-        return new_shipment
+        await self._add(new_shipment)
 
 
 
