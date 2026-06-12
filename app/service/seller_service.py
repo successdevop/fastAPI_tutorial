@@ -8,7 +8,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.database.redis_conn import add_jti_to_blacklist
 
 from app.auth.auth_utils import generate_passwd_hash, verify_password, generate_token
-from app.model.seller_model import DeliveryPartner
+from app.model.seller_model import Seller
 from app.schemas.seller_shema import CreateSellerSchema
 
 
@@ -46,7 +46,7 @@ class SellerService:
 
         # Check if email exists
         if email is not None:
-            email_statement = select(DeliveryPartner).where(DeliveryPartner.email == email)
+            email_statement = select(Seller).where(Seller.email == email)
             email_result = await session.exec(email_statement)
             email_exists = email_result.first()
 
@@ -55,7 +55,7 @@ class SellerService:
 
         # Check if username exists
         if username is not None:
-            username_statement = select(DeliveryPartner).where(DeliveryPartner.user_name == username)
+            username_statement = select(Seller).where(Seller.user_name == username)
             username_result = await session.exec(username_statement)
             username_exists = username_result.first()
 
@@ -66,10 +66,10 @@ class SellerService:
         return False, "Not found", None
 
     async def get_all_sellers(self, session: AsyncSession):
-        result = await session.exec(select(DeliveryPartner))
+        result = await session.exec(select(Seller))
         return result.all()
 
-    async def register_seller(self, req_body: CreateSellerSchema, session: AsyncSession) -> DeliveryPartner:
+    async def register_seller(self, req_body: CreateSellerSchema, session: AsyncSession) -> Seller:
         if not self._validate_email(req_body.email):
             raise HTTPException(detail="Invalid email format", status_code=status.HTTP_401_UNAUTHORIZED)
 
@@ -82,7 +82,7 @@ class SellerService:
             raise HTTPException(detail=exist_val, status_code=status.HTTP_409_CONFLICT)
 
         seller_data = req_body.model_dump()
-        new_seller = DeliveryPartner(**seller_data, user_name=seller_data["username"])
+        new_seller = Seller(**seller_data, user_name=seller_data["username"])
         new_seller.password_hash = generate_passwd_hash(seller_data["password"])
 
         try:

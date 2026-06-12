@@ -21,9 +21,8 @@ class BaseDeliverySchema(BaseModel):
 
 
 class UpdateDeliverySchema(BaseModel):
-    username: Optional[str] = Field(default=None, min_length=3, max_length=16)
-    email: Optional[str] = Field(default=None)
-    password: Optional[str] = Field(default=None, min_length=8)
+    serviceable_zip_codes: Optional[list[int]] = Field(default=None)
+    max_handling_capacity: Optional[int] = Field(default=None)
 
 
 class CreateDeliverySchema(BaseModel):

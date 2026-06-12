@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.schemas.seller_shema import CreateSellerSchema, BaseSellerSchema
 from app.database.session import SessionDep
 from app.service.seller_service import SellerService
-from app.dependency.user_dependency import get_access_token
+from app.dependency.user_dependency import get_seller_access_token
 
 
 seller_router = APIRouter()
@@ -30,7 +30,7 @@ async def login_seller(req_form: Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
 @seller_router.get("/logout")
-async def logout_seller(token_data: Annotated[dict, Depends(get_access_token)]):
+async def logout_seller(token_data: Annotated[dict, Depends(get_seller_access_token)]):
     try:
         result = await seller_service.logout(token_data=token_data)
         return result

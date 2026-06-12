@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from app.model.shipment_model import Shipment
 
 
-class DeliveryPartner(User, table=True):
+class Seller(User, table=True):
     __tablename__ = "seller"
     seller_id: str = Field(default_factory=lambda : str(uuid.uuid4()), primary_key=True,
                            nullable=False, index=True)

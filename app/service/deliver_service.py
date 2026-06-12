@@ -9,11 +9,10 @@ from app.database.redis_conn import add_jti_to_blacklist
 
 from app.auth.auth_utils import generate_passwd_hash, verify_password, generate_token
 from app.model.delivery_model import DeliveryPartner
-from app.schemas.seller_shema import CreateSellerSchema
+from app.schemas.delivery_schema import CreateDeliverySchema, UpdateDeliverySchema
 
 
-
-class SellerService:
+class DeliveryService:
     def _validate_email(self, email: str) -> bool:
         """Simple email validation"""
         pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
@@ -69,7 +68,7 @@ class SellerService:
         result = await session.exec(select(DeliveryPartner))
         return result.all()
 
-    async def register_delivery_partner(self, req_body: CreateSellerSchema, session: AsyncSession) -> DeliveryPartner:
+    async def register_delivery_partner(self, req_body: CreateDeliverySchema, session: AsyncSession) -> DeliveryPartner:
         if not self._validate_email(req_body.email):
             raise HTTPException(detail="Invalid email format", status_code=status.HTTP_401_UNAUTHORIZED)
 
@@ -96,6 +95,9 @@ class SellerService:
         except Exception as error:
             await session.rollback()
             raise HTTPException(detail=error, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    async def update_d_partner(self, req_body: UpdateDeliverySchema, session: AsyncSession):
+        pass
 
     async def login_func(self, email: str, password, session: AsyncSession) -> dict[str, Any]:
         _, _, d_partner = await self._partner_already_exist(email=email, session=session)
