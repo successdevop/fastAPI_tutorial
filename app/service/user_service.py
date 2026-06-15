@@ -15,13 +15,13 @@ class UserService(BaseService):
         super().__init__(model=model, session=session)
 
     async def _get_by_email(self, email: str) -> User | None:
-        return await self.session.scalar(
+        return (await self.session.exec(
             select(self.model).where(self.model.email == email)
-        )
+        )).first()
 
     async def _get_by_username(self, username) -> User | None:
         return await self.session.scalar(
-            select(self.model.user_name == username)
+            select(self.model).where(self.model.user_name == username)
         )
 
     async def _generate_token(self, email: str, password: str) -> str:
