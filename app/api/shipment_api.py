@@ -3,7 +3,7 @@ from fastapi import APIRouter, status
 
 from app.database.session import SessionDep
 from app.schemas.shipment_schema import BaseShipmentModel, ShipmentUpdateSchema, ShipmentCreateSchema
-from app.service.shipment import ShipmentServices
+from app.service.shipment_service import ShipmentServices
 from app.dependency.user_dependency import SellerDep
 
 

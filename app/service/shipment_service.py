@@ -6,11 +6,13 @@ from app.model.seller_model import Seller
 from app.model.shipment_model import Shipment
 from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSchema
 from app.service.base_service import BaseService
+from app.service.deliver_service import DeliveryService
 
 
 class ShipmentServices(BaseService):
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, partner_service: DeliveryService):
         super().__init__(Shipment, session=session)
+        self.partner_service = partner_service
 
     async def get_all_shipments(self):
         sql_statement = select(self.model)
@@ -49,8 +51,9 @@ class ShipmentServices(BaseService):
     async def create_a_shipment(self, req_body: ShipmentCreateSchema, seller: Seller):
         shipment_data = req_body.model_dump()
         new_shipment = Shipment(**shipment_data, seller_id=seller.seller_id)
+        await self.partner_service.assign_shipment(new_shipment)
 
-        await self._add(new_shipment)
+        return await self._add(new_shipment)
 
 
 

@@ -1,14 +1,12 @@
-import re
-from typing import Tuple, Any
+from typing import Any, Sequence
 
-from asyncpg import IntegrityConstraintViolationError
 from fastapi import HTTPException, status
-from sqlmodel import select
+from sqlmodel import select, any_
 from sqlmodel.ext.asyncio.session import AsyncSession
 from app.database.redis_conn import add_jti_to_blacklist
 
-from app.auth.auth_utils import generate_passwd_hash, verify_password, generate_token
 from app.model.delivery_model import DeliveryPartner
+from app.model.shipment_model import Shipment
 from app.schemas.delivery_schema import CreateDeliverySchema, UpdateDeliverySchema
 from app.service.user_service import UserService
 
@@ -27,6 +25,24 @@ class DeliveryService(UserService):
         partner_data = req_body.model_dump()
         new_delivery_partner = await self._add_user(partner_data)
         return new_delivery_partner
+
+    async def get_delivery_partner_by_zipcode(self, zipcode: int) -> Sequence[DeliveryPartner]:
+        rsult = await self.session.exec(
+            select(DeliveryPartner).where(zipcode == any_(DeliveryPartner.serviceable_zip_codes))
+        )
+        return rsult.all()
+
+    async def assign_shipment(self, shipment: Shipment):
+        eligible_partners = await self.get_delivery_partner_by_zipcode(shipment.destination)
+        for partner in eligible_partners:
+            if partner.max_handling_capacity > 0:
+                partner.shipments.append(shipment)
+                return partner
+
+        raise HTTPException(
+            detail="No delivery partner available",
+            status_code=status.HTTP_406_NOT_ACCEPTABLE
+        )
 
     async def update_d_partner(self, p_id: str, req_body: UpdateDeliverySchema):
         partner = await self._get(uid=p_id)
