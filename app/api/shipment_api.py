@@ -3,12 +3,14 @@ from fastapi import APIRouter, status
 
 from app.database.session import SessionDep
 from app.schemas.shipment_schema import BaseShipmentModel, ShipmentUpdateSchema, ShipmentCreateSchema
+from app.service.deliver_service import DeliveryService
 from app.service.shipment_service import ShipmentServices
 from app.dependency.user_dependency import SellerDep
 
 
 shipment_router = APIRouter()
-shipment_service = ShipmentServices(session=SessionDep)
+partner_service = DeliveryService(session=SessionDep)
+shipment_service = ShipmentServices(session=SessionDep, partner_service=partner_service)
 
 @shipment_router.get("/", response_model=List[BaseShipmentModel], status_code=status.HTTP_200_OK)
 async def get_all_shipments(_: SellerDep):

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
+from app.api.delivery_api import delivery_router
 from app.api.seller_api import seller_router
 from app.api.shipment_api import shipment_router
 from app.database.session import create_db_tables, engine
@@ -29,6 +30,7 @@ app = FastAPI(
 
 app.include_router(shipment_router, prefix=f"/api/{version}/shipments", tags=["Shipments"])
 app.include_router(seller_router, prefix=f"/api/{version}/sellers", tags=["Sellers"])
+app.include_router(delivery_router, prefix=f"/api/{version}/partner", tags=["delivery-partner"])
 
 @app.get("/scalar", include_in_schema=False)
 def get_scalar_docs():
