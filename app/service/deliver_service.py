@@ -10,106 +10,38 @@ from app.database.redis_conn import add_jti_to_blacklist
 from app.auth.auth_utils import generate_passwd_hash, verify_password, generate_token
 from app.model.delivery_model import DeliveryPartner
 from app.schemas.delivery_schema import CreateDeliverySchema, UpdateDeliverySchema
+from app.service.user_service import UserService
 
 
-class DeliveryService:
-    def _validate_email(self, email: str) -> bool:
-        """Simple email validation"""
-        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        return bool(re.match(pattern, email))
+class DeliveryService(UserService):
+    def __init__(self, session: AsyncSession):
+        super().__init__(DeliveryPartner, session=session)
 
-    def _validate_password(self, password: str) -> Tuple[bool, str]:
-        """Simple password validation (at least 8 chars, 1 number, 1 capital letter, 1 small letter, 1 special char)"""
-        MIN_LEN = 8
-        MAX_LEN = 128
-
-        # Special characters allowed
-        SPECIAL_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?"
-
-        if len(password) < MIN_LEN or len(password) > MAX_LEN:
-            return False, f"Password must be at least {MIN_LEN} characters long and not exceed {MAX_LEN} characters"
-        if not any(c.isupper() for c in password) or not any(c.islower() for c in password):
-            return False, "Password must contain at least one capital letter and one small letter"
-        if not any(c.isdigit() for c in password):
-            return False, "Password must contain at least one number"
-        if not any(c in SPECIAL_CHARS for c in password):
-            return False, "Password must contain at least one special character"
-
-        return True, "OK"
-
-    async def _partner_already_exist(self, email: str = None, username: str = None, session: AsyncSession = None) -> Tuple[bool, str, Any]:
-        """Check if email or username already exists in database"""
-
-        if session is None:
-            raise ValueError("Session cannot be None")
-
-        # Check if email exists
-        if email is not None:
-            email_statement = select(DeliveryPartner).where(DeliveryPartner.email == email)
-            email_result = await session.exec(email_statement)
-            email_exists = email_result.first()
-
-            if email_exists:
-                return True, f"Seller with email ({email}) already exists", email_exists
-
-        # Check if username exists
-        if username is not None:
-            username_statement = select(DeliveryPartner).where(DeliveryPartner.user_name == username)
-            username_result = await session.exec(username_statement)
-            username_exists = username_result.first()
-
-            if username_exists:
-                return True, f"Seller with username ({username}) already exists", username_exists
-
-        # Neither exists
-        return False, "Not found", None
-
-    async def get_all_delivery_partners(self, session: AsyncSession):
-        result = await session.exec(select(DeliveryPartner))
+    async def get_all_delivery_partners(self):
+        result = await self.session.exec(
+            select(self.model)
+        )
         return result.all()
 
-    async def register_delivery_partner(self, req_body: CreateDeliverySchema, session: AsyncSession) -> DeliveryPartner:
-        if not self._validate_email(req_body.email):
-            raise HTTPException(detail="Invalid email format", status_code=status.HTTP_401_UNAUTHORIZED)
-
-        bool_Val, str_Val = self._validate_password(req_body.password)
-        if not bool_Val:
-            raise HTTPException(detail=str_Val, status_code=status.HTTP_401_UNAUTHORIZED)
-
-        exist_, exist_val, _ = await self._partner_already_exist(email=req_body.email, username=req_body.username, session=session)
-        if exist_:
-            raise HTTPException(detail=exist_val, status_code=status.HTTP_409_CONFLICT)
-
+    async def register_delivery_partner(self, req_body: CreateDeliverySchema) -> DeliveryPartner:
         partner_data = req_body.model_dump()
-        new_partner = DeliveryPartner(**partner_data, user_name=partner_data["username"])
-        new_partner.password_hash = generate_passwd_hash(partner_data["password"])
+        new_delivery_partner = await self._add_user(partner_data)
+        return new_delivery_partner
 
-        try:
-            session.add(new_partner)
-            await session.commit()
-            await session.refresh(new_partner)
-            return new_partner
-        except IntegrityConstraintViolationError as error:
-            await session.rollback()
-            raise HTTPException(detail=error, status_code=status.HTTP_400_BAD_REQUEST)
-        except Exception as error:
-            await session.rollback()
-            raise HTTPException(detail=error, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    async def update_d_partner(self, p_id: str, req_body: UpdateDeliverySchema):
+        partner = await self._get(uid=p_id)
+        if partner is None:
+            raise HTTPException(detail=f"partner with ID ({p_id}) not found",
+                                status_code=status.HTTP_404_NOT_FOUND)
 
-    async def update_d_partner(self, req_body: UpdateDeliverySchema, session: AsyncSession):
-        pass
+        partner_data = req_body.model_dump(exclude_none=True)
+        for k, v in partner_data.items():
+            setattr(partner, k, v)
 
-    async def login_func(self, email: str, password, session: AsyncSession) -> dict[str, Any]:
-        _, _, d_partner = await self._partner_already_exist(email=email, session=session)
-
-        if d_partner is None or not verify_password(password=password, hashed_password=d_partner.password_hash):
-            raise HTTPException(detail="Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
-
-        token = generate_token(
-            user_data={
-                "id":d_partner.dlv_id,
-            }
-        )
+        return await self._update(partner)
+        
+    async def login_func(self, email: str, password) -> dict[str, Any]:
+        token = await self._generate_token(email=email, password=password)
 
         return {
             "message":"Login successful",

@@ -10,23 +10,23 @@ from app.dependency.user_dependency import get_seller_access_token
 
 
 seller_router = APIRouter()
-seller_service = SellerService()
+seller_service = SellerService(session=SessionDep)
 
 
 @seller_router.post("/signup", response_model=BaseSellerSchema, status_code=status.HTTP_201_CREATED)
-async def create_seller_account(req: CreateSellerSchema, session: SessionDep):
-    return await seller_service.register_seller(req_body=req, session=session)
+async def create_seller_account(req: CreateSellerSchema):
+    return await seller_service.register_seller(req_body=req)
 
 
 @seller_router.get("/", response_model=List[BaseSellerSchema], status_code=status.HTTP_200_OK)
-async def get_all_sellers(session: SessionDep):
-    return await seller_service.get_all_sellers(session=session)
+async def get_all_sellers():
+    return await seller_service.get_all_sellers()
 
 
 # Login user
 @seller_router.post("/login", response_model=dict, status_code=status.HTTP_200_OK)
-async def login_seller(req_form: Annotated[OAuth2PasswordRequestForm, Depends()], session: SessionDep):
-    return await seller_service.login_func(email=req_form.username, password=req_form.password, session=session)
+async def login_seller(req_form: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    return await seller_service.login_func(email=req_form.username, password=req_form.password)
 
 
 @seller_router.get("/logout")

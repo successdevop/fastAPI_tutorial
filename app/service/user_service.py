@@ -2,7 +2,7 @@ import re
 from typing import Type, Tuple
 
 from fastapi import HTTPException, status
-from sqlmodel import select, SQLModel
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.service.base_service import BaseService
@@ -24,7 +24,7 @@ class UserService(BaseService):
             select(self.model.user_name == username)
         )
 
-    async def _generate_token(self, email: str, password: str):
+    async def _generate_token(self, email: str, password: str) -> str:
         user = await self._get_by_email(email=email)
         if user is None or not verify_password(password=password, hashed_password=user.password_hash):
             raise HTTPException(detail="Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
@@ -36,8 +36,7 @@ class UserService(BaseService):
 
         return token
 
-    async def _add_user(self, entity: SQLModel):
-        user_data = entity.model_dump()
+    async def _add_user(self, user_data: dict):
         if not self._validate_email(user_data["email"]):
             raise HTTPException(detail="Invalid email format", status_code=status.HTTP_401_UNAUTHORIZED)
 
@@ -59,7 +58,7 @@ class UserService(BaseService):
             password_hash=generate_passwd_hash(user_data["password"])
         )
 
-        return self._add(new_user)
+        return await self._add(new_user)
 
     @staticmethod
     def _validate_email(email: str) -> bool:

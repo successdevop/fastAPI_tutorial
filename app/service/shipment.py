@@ -46,12 +46,6 @@ class ShipmentServices(BaseService):
 
         await self._update(shipment)
 
-        # shipment.update(shipment_data)
-        # session.add(shipment)
-        # await session.commit()
-        # await session.refresh(shipment)
-        # return shipment
-
     async def create_a_shipment(self, req_body: ShipmentCreateSchema, seller: Seller):
         shipment_data = req_body.model_dump()
         new_shipment = Shipment(**shipment_data, seller_id=seller.seller_id)
