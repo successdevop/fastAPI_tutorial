@@ -13,6 +13,7 @@ engine = create_async_engine(
     echo=True
 )
 
+
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
@@ -35,6 +36,7 @@ async def get_db_session():
             yield session
         finally:
             await session.close()
+
 
 # session dependency annotation
 SessionDep = Annotated[AsyncSession, Depends(get_db_session)]

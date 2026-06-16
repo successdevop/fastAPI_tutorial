@@ -6,11 +6,11 @@ from app.model.seller_model import Seller
 from app.model.shipment_model import Shipment
 from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSchema
 from app.service.base_service import BaseService
-from app.service.deliver_service import DeliveryService
+from app.service.deliver_service import DeliveryPartnerService
 
 
 class ShipmentServices(BaseService):
-    def __init__(self, session: AsyncSession, partner_service: DeliveryService):
+    def __init__(self, session: AsyncSession, partner_service: DeliveryPartnerService):
         super().__init__(Shipment, session=session)
         self.partner_service = partner_service
 

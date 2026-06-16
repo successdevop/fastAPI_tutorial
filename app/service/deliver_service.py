@@ -11,7 +11,7 @@ from app.schemas.delivery_schema import CreateDeliverySchema, UpdateDeliverySche
 from app.service.user_service import UserService
 
 
-class DeliveryService(UserService):
+class DeliveryPartnerService(UserService):
     def __init__(self, session: AsyncSession):
         super().__init__(DeliveryPartner, session=session)
 
