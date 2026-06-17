@@ -1,7 +1,6 @@
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from random import randint
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.dialects.postgresql import TIMESTAMP
@@ -36,7 +35,7 @@ class Shipment(SQLModel, table=True):
 
     content: str = Field(nullable=False)
     weight: float = Field(nullable=False)
-    destination: int = Field(default_factory=lambda : randint(2222, 9999), nullable=False)
+    destination: int = Field(nullable=False)
     status: ShipmentStatus = Field(default=ShipmentStatus.PLACED, nullable=False)
 
     created_at: datetime = Field(
@@ -49,10 +48,10 @@ class Shipment(SQLModel, table=True):
         sa_column=Column(TIMESTAMP(timezone=True), nullable=False, onupdate=get_current_time)
     )
 
-    seller_id: str = Field(foreign_key="seller.seller_id")
+    seller_id: str = Field(foreign_key="seller.id")
     seller: "Seller" = Relationship(back_populates="shipments", sa_relationship_kwargs={"lazy": "selectin"})
 
-    del_partner_id: Optional[str] = Field(default=None, foreign_key="delivery_partner.dlv_id")
+    del_partner_id: Optional[str] = Field(default=None, foreign_key="delivery_partner.id")
     delivery: "DeliveryPartner" = Relationship(back_populates="shipments", sa_relationship_kwargs={"lazy":"selectin"})
 
     def __repr__(self):

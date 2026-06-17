@@ -34,6 +34,7 @@ async def get_current_seller(token_data: Annotated[dict, Depends(get_seller_acce
         raise HTTPException(detail="Not authorised", status_code=status.HTTP_401_UNAUTHORIZED)
     return seller
 
+
 async def get_current_d_partner(token_data: Annotated[dict, Depends(get_d_partner_access_token)], session: SessionDep):
     partner = await session.get(DeliveryPartner, token_data["user"]["id"])
     if partner is None:

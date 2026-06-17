@@ -5,10 +5,12 @@ from pydantic import BaseModel, field_serializer, Field
 
 
 class BaseDeliverySchema(BaseModel):
-    del_id: str = Field(description="Delivery partner unique ID")
+    id: str = Field(description="Delivery partner unique ID")
     user_name: str = Field(description="Delivery partner unique username")
     email: str = Field(description="Delivery partner unique email")
     password_hash: str = Field(description="Delivery partner password", exclude=True)
+    serviceable_zip_codes: list[int] = Field(description="List of all serviceable zip code destinations")
+    max_handling_capacity: int = Field(description="Maximum capacity for delivery")
     created_at: datetime = Field(description="Date time at which Delivery partner account was created")
 
     @field_serializer("created_at")

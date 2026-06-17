@@ -5,7 +5,7 @@ from pydantic import BaseModel, field_serializer, Field
 
 
 class BaseSellerSchema(BaseModel):
-    seller_id: str = Field(description="Seller unique ID")
+    id: str = Field(description="Seller unique ID")
     user_name: str = Field(description="Seller unique username")
     email: str = Field(description="Seller unique email")
     password_hash: str = Field(description="Seller password", exclude=True)

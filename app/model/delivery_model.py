@@ -16,12 +16,6 @@ if TYPE_CHECKING:
 class DeliveryPartner(User, table=True):
     __tablename__ = "delivery_partner"
 
-    dlv_id: str = Field(
-        default_factory=lambda : str(uuid.uuid4()),
-        primary_key=True,
-        nullable=False,
-        index=True)
-
     serviceable_zip_codes: list[int] = Field(
         sa_column=Column(ARRAY(INTEGER))
     )
@@ -39,7 +33,7 @@ class DeliveryPartner(User, table=True):
         return [
             shipment
             for shipment in self.shipments
-            if shipment.status == ShipmentStatus.DELIVERED
+            if shipment.status != ShipmentStatus.DELIVERED
         ]
 
     @property

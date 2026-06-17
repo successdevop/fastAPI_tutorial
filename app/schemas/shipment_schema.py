@@ -31,6 +31,9 @@ class BaseShipmentModel(BaseModel):
     seller_id: str = Field(
         description="ID of the creator of the shipment"
     )
+    del_partner_id: str = Field(
+        description="ID of the delivery partner of the shipment"
+    )
 
     @field_serializer("created_at", "updated_at")
     def serialize_datetime(self, dt: datetime) -> str:
@@ -43,10 +46,8 @@ class BaseShipmentModel(BaseModel):
 class ShipmentCreateSchema(BaseModel):
     content: str
     weight: float = Field(gt=1)
+    destination: int
 
 
 class ShipmentUpdateSchema(BaseModel):
-    content: Optional[str] = Field(default=None)
-    weight: Optional[float] = Field(default=None, gt=1)
-    destination: Optional[int] = Field(default=None)
     status: Optional[ShipmentStatus] = Field(default=None)
