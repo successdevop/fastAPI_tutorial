@@ -12,6 +12,9 @@ if TYPE_CHECKING:
 class Seller(User, table=True):
     __tablename__ = "seller"
 
+    address: str = Field(default=None)
+    zip_code: int = Field(default=None)
+
     created_at: datetime = Field(
         default_factory=lambda : datetime.now(tz=timezone.utc),
         sa_column=Column(TIMESTAMP(timezone=True), nullable=False))

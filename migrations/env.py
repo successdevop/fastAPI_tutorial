@@ -9,7 +9,7 @@ from alembic import context
 from sqlmodel import SQLModel
 
 from app.config import db_settings
-from app.model.seller_model import DeliveryPartner
+from app.model.seller_model import Seller
 from app.model.shipment_model import Shipment
 from app.model.delivery_model import DeliveryPartner
 
