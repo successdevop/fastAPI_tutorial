@@ -13,6 +13,12 @@ class ShipmentEventService(BaseService):
                                status: ShipmentStatus | None = None,
                                description: str | None = None):
 
+        if not location or not status or not description:
+            last_event = await self.get_latest_shipment(shipment)
+            location = location if location is not None else last_event.location
+            status = status if status is not None else last_event.status
+            description = description if description is not None else self._generate_description(status, location)
+
         new_shipment_evt = ShipmentEvent(
             location=location,
             status=status,
@@ -21,3 +27,21 @@ class ShipmentEventService(BaseService):
         )
 
         return await self._add(new_shipment_evt)
+
+    async def get_latest_shipment(self, shipment: Shipment):
+        timeline = shipment.timeline
+        timeline.sort(key=lambda item: item["created_at"])
+        return timeline[-1]
+
+    def _generate_description(self, status: ShipmentStatus, location: int):
+        match status:
+            case ShipmentStatus.PLACED:
+                return "assigned delivery partner"
+            case ShipmentStatus.IN_TRANSIT:
+                return "shipment in transit"
+            case ShipmentStatus.DELIVERED:
+                return "shipment successfully delivered"
+            case ShipmentStatus.OUT_OF_DELIVERY:
+                return "shipment out of delivery"
+            case _:
+                return f"scanned at {location}"
