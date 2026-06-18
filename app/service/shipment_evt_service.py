@@ -10,18 +10,15 @@ class ShipmentEventService(BaseService):
 
     async def add_shipment_evt(self, shipment: Shipment,
                                location: int | None = None,
-                               status: ShipmentStatus | None = None,
                                description: str | None = None):
 
-        if not location or not status or not description:
+        if not location or not description:
             last_event = await self.get_latest_shipment(shipment)
             location = location if location is not None else last_event.location
-            status = status if status is not None else last_event.status
-            description = description if description is not None else self._generate_description(status, location)
+            description = description if description is not None else self._generate_description(ShipmentStatus.PLACED, location)
 
         new_shipment_evt = ShipmentEvent(
             location=location,
-            status=status,
             description=description,
             shipment_id=shipment.ship_id
         )

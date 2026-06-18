@@ -73,7 +73,7 @@ class ShipmentEvent(SQLModel, table=True):
         sa_column=Column(TIMESTAMP(timezone=True), nullable=False)
     )
 
-    status: ShipmentStatus = Field(default=ShipmentStatus.PLACED.value, nullable=False)
+    status: ShipmentStatus = Field(default=ShipmentStatus.PLACED, nullable=False)
     location: int = Field(default=None)
     description: Optional[str] = Field(default=None)
     shipment_id: str = Field(foreign_key="shipment.ship_id")

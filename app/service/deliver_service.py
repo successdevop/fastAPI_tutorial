@@ -35,7 +35,7 @@ class DeliveryPartnerService(UserService):
     async def assign_shipment(self, shipment: Shipment):
         eligible_partners = await self.get_delivery_partner_by_zipcode(shipment.destination)
         for partner in eligible_partners:
-            if partner.max_handling_capacity > 0:
+            if partner.current_handling_capacity > 0:
                 partner.shipments.append(shipment)
                 return partner
 

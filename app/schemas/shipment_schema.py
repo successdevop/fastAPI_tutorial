@@ -1,9 +1,19 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, Field, field_serializer, ConfigDict
 from app.model.shipment_model import ShipmentStatus
 
+
+class ShipmentEventResponse(BaseModel):
+    s_evt_id: str
+    created_at: datetime
+    status: ShipmentStatus
+    location: int
+    description: Optional[str] = None
+    shipment_id: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 class BaseShipmentModel(BaseModel):
     ship_id: str = Field(
@@ -18,9 +28,9 @@ class BaseShipmentModel(BaseModel):
     destination: int = Field(
         description="Destination zipcode",
     )
-    status: ShipmentStatus = Field(
-        description="The shipment delivery status",
-        default=ShipmentStatus.PLACED.value
+    timeline: List[ShipmentEventResponse] = Field(
+        description="A list of shipment events",
+        default_factory=list
     )
     created_at: datetime = Field(
         description="Shipment creation time"
@@ -31,7 +41,8 @@ class BaseShipmentModel(BaseModel):
     seller_id: str = Field(
         description="ID of the creator of the shipment"
     )
-    del_partner_id: str = Field(
+    del_partner_id: Optional[str] = Field(
+        default=None,
         description="ID of the delivery partner of the shipment"
     )
 
@@ -39,8 +50,7 @@ class BaseShipmentModel(BaseModel):
     def serialize_datetime(self, dt: datetime) -> str:
         return dt.strftime("%Y-%m-%d %H:%M:%S") if dt else ""
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ShipmentCreateSchema(BaseModel):
@@ -51,3 +61,5 @@ class ShipmentCreateSchema(BaseModel):
 
 class ShipmentUpdateSchema(BaseModel):
     status: Optional[ShipmentStatus] = Field(default=None)
+    location: Optional[int] = Field(default=None)
+    description: Optional[str] = Field(default=None)

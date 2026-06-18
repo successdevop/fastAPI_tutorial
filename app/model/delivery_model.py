@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
@@ -33,7 +32,8 @@ class DeliveryPartner(User, table=True):
         return [
             shipment
             for shipment in self.shipments
-            if shipment.status != ShipmentStatus.DELIVERED
+                for shipment_evt in shipment.timeline
+                    if shipment_evt.status != ShipmentStatus.DELIVERED
         ]
 
     @property

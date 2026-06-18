@@ -1,10 +1,9 @@
-from typing import Type
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 class BaseService:
-    def __init__(self, model: Type[SQLModel], session: AsyncSession):
+    def __init__(self, model: type[SQLModel], session: AsyncSession):
         self.model = model
         self.session = session
 

@@ -9,6 +9,8 @@ class BaseSellerSchema(BaseModel):
     user_name: str = Field(description="Seller unique username")
     email: str = Field(description="Seller unique email")
     password_hash: str = Field(description="Seller password", exclude=True)
+    address: str = Field(description="seller's address")
+    zip_code: int = Field(description="seller's zip code")
     created_at: datetime = Field(description="Date time at which Seller account was created")
     updated_at: datetime = Field(description="Date time at which Seller account was updated")
 
@@ -30,3 +32,5 @@ class CreateSellerSchema(BaseModel):
     username: str = Field(min_length=3, max_length=16)
     email: str
     password: str = Field(min_length=8)
+    address: str
+    zip_code: int
