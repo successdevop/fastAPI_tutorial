@@ -59,18 +59,20 @@ class ShipmentServices(BaseService):
 
     async def create_a_shipment(self, req_body: ShipmentCreateSchema, seller: Seller):
         shipment_data = req_body.model_dump()
-        
+
         new_shipment = Shipment(**shipment_data, seller_id=seller.id)
         partner = await self.partner_service.assign_shipment(new_shipment)
         new_shipment.del_partner_id = partner.id
 
         shipment = await self._add(new_shipment)
 
-        await self.event_service.add_shipment_evt(
+        event = await self.event_service.add_shipment_evt(
             shipment=shipment,
             location=seller.zip_code,
             description=f"assigned to {partner.user_name}"
         )
+
+        shipment.timeline.append(event)
 
         return shipment
 

@@ -6,10 +6,10 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlmodel import Field, Relationship
 
 from app.model.base_model import User
+from app.model.shipment_model import ShipmentStatus
 
 if TYPE_CHECKING:
     from app.model.shipment_model import Shipment
-    from app.model.shipment_model import ShipmentStatus
 
 
 class DeliveryPartner(User, table=True):
@@ -19,7 +19,7 @@ class DeliveryPartner(User, table=True):
         sa_column=Column(ARRAY(INTEGER))
     )
 
-    max_handling_capacity: int
+    max_handling_capacity: int = Field(default=5, nullable=False)
 
     created_at: datetime = Field(
         default_factory=lambda : datetime.now(tz=timezone.utc),
@@ -28,14 +28,20 @@ class DeliveryPartner(User, table=True):
     shipments: list["Shipment"] = Relationship(back_populates="delivery", sa_relationship_kwargs={"lazy":"selectin"})
 
     @property
-    def active_shipments(self):
-        return [
-            shipment
-            for shipment in self.shipments
-                for shipment_evt in shipment.timeline
-                    if shipment_evt.status != ShipmentStatus.DELIVERED
-        ]
+    def active_shipments(self) -> list["Shipment"]:
+        if not self.shipments:
+            return []
+
+        active = []
+        for shipment in self.shipments:
+            if not shipment.timeline:
+                active.append(shipment)
+            else:
+                last_event = shipment.timeline[-1]
+                if last_event.status != ShipmentStatus.DELIVERED:
+                    active.append(shipment)
+        return active
 
     @property
-    def current_handling_capacity(self):
+    def current_handling_capacity(self) -> int:
         return self.max_handling_capacity - len(self.active_shipments)
