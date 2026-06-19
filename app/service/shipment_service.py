@@ -2,9 +2,9 @@ from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.dependency.user_dependency import DeliveryPartnerDep
+from app.dependency.user_dependency import DeliveryPartnerDep, SellerDep
 from app.model.seller_model import Seller
-from app.model.shipment_model import Shipment
+from app.model.shipment_model import Shipment, ShipmentStatus
 from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSchema
 from app.service.base_service import BaseService
 from app.service.deliver_service import DeliveryPartnerService
@@ -73,6 +73,23 @@ class ShipmentServices(BaseService):
             shipment=shipment,
             location=seller.zip_code,
             description=f"assigned to {partner.user_name}"
+        )
+
+        shipment.timeline.append(event)
+
+        return shipment
+
+    async def cancel_shipment(self, s_id: str, seller:SellerDep):
+        shipment = await self._get(uid=s_id)
+        if not shipment:
+            raise HTTPException(detail=f"Shipment with id {s_id} not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        if shipment.seller_id != seller.id:
+            raise HTTPException(detail="Not authorized", status_code=status.HTTP_401_UNAUTHORIZED)
+
+        event = await self.event_service.add_shipment_evt(
+            shipment=shipment,
+            status=ShipmentStatus.CANCELLED
         )
 
         shipment.timeline.append(event)

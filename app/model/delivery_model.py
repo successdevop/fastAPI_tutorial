@@ -38,7 +38,7 @@ class DeliveryPartner(User, table=True):
                 active.append(shipment)
             else:
                 last_event = shipment.timeline[-1]
-                if last_event.status != ShipmentStatus.DELIVERED:
+                if last_event.status != ShipmentStatus.DELIVERED or last_event.status != ShipmentStatus.CANCELLED:
                     active.append(shipment)
         return active
 

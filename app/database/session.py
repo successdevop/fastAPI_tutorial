@@ -3,7 +3,6 @@ from typing import Annotated
 from fastapi import Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlmodel import SQLModel
 
 from app.config import db_settings
 
@@ -23,9 +22,7 @@ AsyncSessionLocal = async_sessionmaker(
 
 async def create_db_tables():
     async with engine.begin() as connection:
-        from app.model.seller_model import Seller
-        from app.model.delivery_model import DeliveryPartner
-        from app.model.shipment_model import Shipment
+        from app.model import SQLModel, Seller, Shipment, ShipmentEvent, DeliveryPartner
         await connection.run_sync(SQLModel.metadata.create_all)
 
 

@@ -32,3 +32,8 @@ async def delete_a_shipment(s_id: str, shipment_service: ShipmentServiceDep):
 @shipment_router.post("/", response_model=BaseShipmentModel, status_code=status.HTTP_201_CREATED)
 async def create_new_shipment(seller: SellerDep, req: ShipmentCreateSchema, shipment_service: ShipmentServiceDep):
     return await shipment_service.create_a_shipment(req_body=req, seller=seller)
+
+
+@shipment_router.get("/cancel/{s_id}", response_model=BaseShipmentModel, status_code=status.HTTP_200_OK)
+async def cancel_shipment(s_id: str, seller: SellerDep, shipment_service: ShipmentServiceDep):
+    return await shipment_service.cancel_shipment(s_id=s_id, seller=seller)

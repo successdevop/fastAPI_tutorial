@@ -21,6 +21,7 @@ class ShipmentStatus(str, Enum):
     IN_TRANSIT = "in_transit"
     OUT_OF_DELIVERY = "out_of_delivery"
     DELIVERED = "delivered"
+    CANCELLED = "cancelled"
 
 
 class Shipment(SQLModel, table=True):

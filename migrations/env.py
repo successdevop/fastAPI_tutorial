@@ -6,19 +6,15 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from sqlmodel import SQLModel
-
 from app.config import db_settings
-from app.model.seller_model import Seller
-from app.model.shipment_model import Shipment
-from app.model.delivery_model import DeliveryPartner
+from app.model import SQLModel
+from app.model import Seller, DeliveryPartner, Shipment, ShipmentEvent
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
 config.set_main_option("sqlalchemy.url", db_settings.POSTGRES_URL)
-
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -55,6 +51,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        compare_type=True,
+        compare_server_default=True
     )
 
     with context.begin_transaction():
