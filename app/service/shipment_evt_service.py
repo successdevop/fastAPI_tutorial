@@ -1,4 +1,5 @@
-from sqlalchemy.util import ellipses_string
+from operator import attrgetter
+
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.model.shipment_model import Shipment, ShipmentStatus, ShipmentEvent
@@ -30,9 +31,10 @@ class ShipmentEventService(BaseService):
         return await self._add(new_shipment_evt)
 
     async def get_latest_shipment(self, shipment: Shipment):
-        timeline = shipment.timeline
-        timeline.sort(key=lambda item: item["created_at"])
-        return timeline[-1]
+        if not shipment.timeline:
+            return None
+
+        return max(shipment.timeline, key=attrgetter("created_at"))
 
     def _generate_description(self, status: ShipmentStatus, location: int):
         match status:

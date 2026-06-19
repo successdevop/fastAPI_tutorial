@@ -58,7 +58,7 @@ class ShipmentServices(BaseService):
             **shipment_data
         )
 
-        await self._update(shipment)
+        return await self._update(shipment)
 
     async def create_a_shipment(self, req_body: ShipmentCreateSchema, seller: Seller):
         shipment_data = req_body.model_dump()
