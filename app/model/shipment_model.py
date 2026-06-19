@@ -36,7 +36,8 @@ class Shipment(SQLModel, table=True):
     content: str = Field(nullable=False)
     weight: float = Field(nullable=False)
     destination: int = Field(nullable=False)
-    timeline: list["ShipmentEvent"] = Relationship(back_populates="shipment", sa_relationship_kwargs={"lazy":"selectin"})
+    timeline: list["ShipmentEvent"] = Relationship(back_populates="shipment",
+                                                   sa_relationship_kwargs={"lazy":"selectin", "cascade": "all, delete-orphan"})
 
     created_at: datetime = Field(
         default_factory=get_current_time,
@@ -48,11 +49,15 @@ class Shipment(SQLModel, table=True):
         sa_column=Column(TIMESTAMP(timezone=True), nullable=False, onupdate=get_current_time)
     )
 
-    seller_id: str = Field(foreign_key="seller.id")
+    seller_id: str = Field(foreign_key="seller.id", nullable=False, ondelete="CASCADE")
     seller: "Seller" = Relationship(back_populates="shipments", sa_relationship_kwargs={"lazy": "selectin"})
 
     del_partner_id: Optional[str] = Field(default=None, foreign_key="delivery_partner.id")
     delivery: "DeliveryPartner" = Relationship(back_populates="shipments", sa_relationship_kwargs={"lazy":"selectin"})
+
+    @property
+    def status(self):
+        return self.timeline[-1].status if len(self.timeline) > 0 else None
 
     def __repr__(self):
         return f"Shipment<(id:{self.ship_id} | status:{self.destination})>"
@@ -76,5 +81,5 @@ class ShipmentEvent(SQLModel, table=True):
     status: ShipmentStatus = Field(default=ShipmentStatus.PLACED, nullable=False)
     location: int = Field(default=None)
     description: Optional[str] = Field(default=None)
-    shipment_id: str = Field(foreign_key="shipment.ship_id")
+    shipment_id: str = Field(foreign_key="shipment.ship_id", nullable=False, ondelete="CASCADE")
     shipment: "Shipment" = Relationship(back_populates="timeline", sa_relationship_kwargs={"lazy":"selectin"})

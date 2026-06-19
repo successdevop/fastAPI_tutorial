@@ -1,3 +1,4 @@
+from sqlalchemy.util import ellipses_string
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.model.shipment_model import Shipment, ShipmentStatus, ShipmentEvent
@@ -10,16 +11,19 @@ class ShipmentEventService(BaseService):
 
     async def add_shipment_evt(self, shipment: Shipment,
                                location: int | None = None,
-                               description: str | None = None):
+                               description: str | None = None,
+                               status: ShipmentStatus | None = None):
 
         if not location or not description:
             last_event = await self.get_latest_shipment(shipment)
             location = location if location is not None else last_event.location
-            description = description if description is not None else self._generate_description(ShipmentStatus.PLACED, location)
+            status = status if status is not None else last_event.status
+            description = description if description is not None else self._generate_description(status, location)
 
         new_shipment_evt = ShipmentEvent(
             location=location,
             description=description,
+            status=status,
             shipment_id=shipment.ship_id
         )
 

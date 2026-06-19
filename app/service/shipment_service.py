@@ -48,12 +48,15 @@ class ShipmentServices(BaseService):
         if shipment.del_partner_id != partner.id:
             raise HTTPException(detail="Not authorized", status_code=status.HTTP_401_UNAUTHORIZED)
 
-        if not req_body:
+        shipment_data = req_body.model_dump(exclude_none=True)
+        if not shipment_data:
             raise HTTPException(detail="No data provided for update", status_code=status.HTTP_400_BAD_REQUEST)
 
-        shipment_data = req_body.model_dump(exclude_none=True)
-        for k, v in shipment_data.items():
-            setattr(shipment, k, v)
+
+        await self.event_service.add_shipment_evt(
+            shipment=shipment,
+            **shipment_data
+        )
 
         await self._update(shipment)
 

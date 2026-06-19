@@ -20,8 +20,8 @@ async def get_a_shipment(s_id: str, shipment_service: ShipmentServiceDep):
 
 
 @shipment_router.patch("/{s_id}", response_model=BaseShipmentModel, status_code=status.HTTP_200_OK)
-async def update_a_shipment(_:DeliveryPartnerDep, s_id: str, req: ShipmentUpdateSchema, shipment_service: ShipmentServiceDep):
-    return await shipment_service.update_a_shipment(s_id=s_id, req_body=req)
+async def update_a_shipment(partner:DeliveryPartnerDep, s_id: str, req: ShipmentUpdateSchema, shipment_service: ShipmentServiceDep):
+    return await shipment_service.update_a_shipment(s_id=s_id, req_body=req, partner=partner)
 
 
 @shipment_router.delete("/{s_id}", response_model=dict[str, str], status_code=status.HTTP_200_OK)

@@ -23,5 +23,6 @@ class Seller(User, table=True):
         default_factory=lambda : datetime.now(tz=timezone.utc),
         sa_column=Column(TIMESTAMP(timezone=True), nullable=False, onupdate=lambda : datetime.now(tz=timezone.utc))
     )
-    shipments: List["Shipment"] = Relationship(back_populates="seller", sa_relationship_kwargs={"lazy":"selectin"})
+    shipments: List["Shipment"] = Relationship(back_populates="seller",
+                                               sa_relationship_kwargs={"lazy":"selectin", "cascade":"all, delete-orphan"})
     
