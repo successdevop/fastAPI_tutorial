@@ -10,4 +10,5 @@ alembic
 passlib
 pyjwt
 redis[hiredis]
+fastapi-mail
 scalar-fastapi
