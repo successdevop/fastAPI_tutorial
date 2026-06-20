@@ -40,14 +40,12 @@ class Shipment(SQLModel, table=True):
     timeline: list["ShipmentEvent"] = Relationship(back_populates="shipment",
                                                    sa_relationship_kwargs={"lazy":"selectin", "cascade": "all, delete-orphan"})
 
+    client_contact_email: str | None = Field(default=None)
+    client_contact_phone: int | None = Field(default=None)
+
     created_at: datetime = Field(
         default_factory=get_current_time,
         sa_column=Column(TIMESTAMP(timezone=True), nullable=False)
-    )
-
-    updated_at: datetime = Field(
-        default_factory=get_current_time,
-        sa_column=Column(TIMESTAMP(timezone=True), nullable=False, onupdate=get_current_time)
     )
 
     seller_id: str = Field(foreign_key="seller.id", nullable=False, ondelete="CASCADE")

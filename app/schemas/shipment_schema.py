@@ -35,9 +35,10 @@ class BaseShipmentModel(BaseModel):
     created_at: datetime = Field(
         description="Shipment creation time"
     )
-    updated_at: datetime = Field(
-        description="Time at which an existing shipment was updated"
-    )
+
+    client_contact_email: str
+    client_contact_phone: int
+
     seller_id: str = Field(
         description="ID of the creator of the shipment"
     )
@@ -57,6 +58,8 @@ class ShipmentCreateSchema(BaseModel):
     content: str
     weight: float = Field(gt=1)
     destination: int
+    client_contact_email: str
+    client_contact_phone: int
 
 
 class ShipmentUpdateSchema(BaseModel):

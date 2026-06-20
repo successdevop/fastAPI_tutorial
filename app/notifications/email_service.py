@@ -1,24 +1,22 @@
-import asyncio
-
 from fastapi_mail import FastMail, ConnectionConfig, MessageSchema, MessageType
 from app.config import notifications_settings
 
 
-fastmail = FastMail(
-    ConnectionConfig(
-        **notifications_settings.model_dump()
-    )
-)
-
-async def send_message():
-    await fastmail.send_message(
-        message=MessageSchema(
-            recipients=["nmesomachifaith@gmail.com"],
-            subject="First email with python",
-            body="This is a shipment application",
-            subtype=MessageType.plain
+class NotificationService:
+    def __init__(self):
+        self.fastmail = FastMail(
+            ConnectionConfig(
+                **notifications_settings.model_dump()
+            )
         )
-    )
-    print("Email sent")
 
-asyncio.run(send_message())
+    async def send_email_message(self, recipients: list, msg_subject: str, msg_body: str):
+        await self.fastmail.send_message(
+            message=MessageSchema(
+                recipients=recipients,
+                subject=msg_subject,
+                body=msg_body,
+                subtype=MessageType.plain
+            )
+        )
+        print("Email sent")
