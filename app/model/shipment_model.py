@@ -41,7 +41,7 @@ class Shipment(SQLModel, table=True):
                                                    sa_relationship_kwargs={"lazy":"selectin", "cascade": "all, delete-orphan"})
 
     client_contact_email: str | None = Field(default=None)
-    client_contact_phone: int | None = Field(default=None)
+    client_contact_phone: str | None = Field(default=None)
 
     created_at: datetime = Field(
         default_factory=get_current_time,

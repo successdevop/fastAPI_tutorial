@@ -36,8 +36,8 @@ class BaseShipmentModel(BaseModel):
         description="Shipment creation time"
     )
 
-    client_contact_email: str
-    client_contact_phone: int
+    client_contact_email: str | None
+    client_contact_phone: str | None
 
     seller_id: str = Field(
         description="ID of the creator of the shipment"
@@ -47,7 +47,7 @@ class BaseShipmentModel(BaseModel):
         description="ID of the delivery partner of the shipment"
     )
 
-    @field_serializer("created_at", "updated_at")
+    @field_serializer("created_at")
     def serialize_datetime(self, dt: datetime) -> str:
         return dt.strftime("%Y-%m-%d %H:%M:%S") if dt else ""
 
@@ -59,7 +59,7 @@ class ShipmentCreateSchema(BaseModel):
     weight: float = Field(gt=1)
     destination: int
     client_contact_email: str
-    client_contact_phone: int
+    client_contact_phone: str
 
 
 class ShipmentUpdateSchema(BaseModel):

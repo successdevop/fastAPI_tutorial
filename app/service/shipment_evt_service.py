@@ -30,7 +30,7 @@ class ShipmentEventService(BaseService):
             shipment_id=shipment.ship_id
         )
 
-        await self._notify(shipment=shipment, status=status|None)
+        await self._notify(shipment=shipment, status=status)
 
         return await self._add(new_shipment_evt)
 
@@ -61,5 +61,27 @@ class ShipmentEventService(BaseService):
                 await self.notification_service.send_email_message(
                     recipients=[shipment.client_contact_email],
                     msg_subject="Your Order is shipped",
-                    msg_body=f"Your order with {shipment.seller.user_name} is picked up by {shipment.delivery.user_name} and is on it's way to you"
+                    msg_body=f"Your order with {shipment.seller.user_name} is picked up by {shipment.delivery.user_name}"
+                             f"and is on it's way to you"
                 )
+            case ShipmentStatus.IN_TRANSIT:
+                await self.notification_service.send_email_message(
+                    recipients=[shipment.client_contact_email],
+                    msg_subject="Your order is shipped",
+                    msg_body=f"Your order with {shipment.seller.user_name} is on transit with {shipment.delivery.user_name}"
+                             f"and is on it's way to you"
+                )
+            case ShipmentStatus.OUT_OF_DELIVERY:
+                await self.notification_service.send_email_message(
+                    recipients=[shipment.client_contact_email],
+                    msg_subject="Your order is on queue",
+                    msg_body=f"shipment is currently out of stock"
+                )
+
+            case ShipmentStatus.DELIVERED:
+                await self.notification_service.send_email_message(
+                    recipients=[shipment.client_contact_email],
+                    msg_subject="Your order is Delivered",
+                    msg_body=f"Your order with {shipment.delivery.user_name} has been delivered"
+                )
+
