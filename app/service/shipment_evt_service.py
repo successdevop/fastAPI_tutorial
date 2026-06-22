@@ -1,3 +1,4 @@
+from datetime import datetime
 from operator import attrgetter
 
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -64,13 +65,28 @@ class ShipmentEventService(BaseService):
         print("==========================")
 
         match status:
-            case ShipmentStatus.PLACED:
-                await self.notification_service.send_email_message(
+            case status.PLACED:
+                await self.notification_service.send_email_message_with_html(
                     recipients=[shipment.client_contact_email],
-                    msg_subject="Your Order is shipped",
-                    msg_body=f"Your order with {shipment.seller.user_name} is picked up by {shipment.delivery.user_name}"
-                             f" and is on it's way to you"
+                    subject_msg="Your order is being processed",
+                    context={
+                        "seller": shipment.seller.user_name,
+                        "ship_id": shipment.ship_id,
+                        "content": shipment.content,
+                        "weight": shipment.weight,
+                        "created": datetime.strftime(shipment.created_at, "%Y-%m-%d %H:%M:%S"),
+                        "status": status.value.lower(),
+                        "client_email": shipment.client_contact_email
+                    },
+                    template_name="mail_placed.html"
                 )
+                # await self.notification_service.send_email_message(
+                #     recipients=[shipment.client_contact_email],
+                #     msg_subject="Your Order is shipped",
+                #     msg_body=f"Your order with {shipment.seller.user_name} is picked up by {shipment.delivery.user_name}"
+                #              f" and is on it's way to you"
+                # )
+
             case ShipmentStatus.IN_TRANSIT:
                 await self.notification_service.send_email_message(
                     recipients=[shipment.client_contact_email],
@@ -78,6 +94,7 @@ class ShipmentEventService(BaseService):
                     msg_body=f"Your order with {shipment.seller.user_name} is on transit with {shipment.delivery.user_name}"
                              f" and is on it's way to you"
                 )
+
             case ShipmentStatus.OUT_OF_DELIVERY:
                 await self.notification_service.send_email_message(
                     recipients=[shipment.client_contact_email],

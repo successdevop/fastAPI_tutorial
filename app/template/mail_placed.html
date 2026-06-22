@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipment Confirmation</title>
+    <style>
+        /* ===== RESET & BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f6f9;
+            line-height: 1.6;
+            color: #1a1a2e;
+            padding: 20px;
+        }
+
+        /* ===== EMAIL CONTAINER ===== */
+        .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ===== HEADER ===== */
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .email-header .logo {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .email-header .subtitle {
+            font-size: 14px;
+            opacity: 0.85;
+            font-weight: 300;
+        }
+
+        /* ===== BODY CONTENT ===== */
+        .email-body {
+            padding: 35px 30px;
+        }
+
+        .greeting {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+
+        .greeting .highlight {
+            color: #667eea;
+        }
+
+        .intro-text {
+            font-size: 15px;
+            color: #4a4a5a;
+            margin-bottom: 25px;
+        }
+
+        /* ===== SHIPMENT DETAILS CARD ===== */
+        .details-card {
+            background: #f8f9fc;
+            border-radius: 10px;
+            padding: 22px 25px;
+            margin: 20px 0 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .details-card .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e8ecf4;
+            font-size: 14px;
+        }
+
+        .details-card .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .details-card .label {
+            font-weight: 600;
+            color: #2d2d44;
+        }
+
+        .details-card .value {
+            color: #4a4a5a;
+            text-align: right;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #34d399;
+            color: #ffffff;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* ===== STATUS PROGRESS BAR ===== */
+        .progress-section {
+            margin: 25px 0 30px;
+        }
+
+        .progress-section .status-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #4a4a5a;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e8ecf4;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            width: 65%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        /* ===== BUTTON ===== */
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 14px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(102, 126, 234, 0.35);
+            margin: 10px 0 5px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.45);
+        }
+
+        .btn-wrapper {
+            text-align: center;
+            margin: 25px 0 10px;
+        }
+
+        /* ===== FOOTER ===== */
+        .email-footer {
+            background: #f8f9fc;
+            padding: 25px 30px;
+            text-align: center;
+            border-top: 1px solid #e8ecf4;
+        }
+
+        .email-footer p {
+            font-size: 13px;
+            color: #7a7a8a;
+            margin-bottom: 6px;
+        }
+
+        .email-footer .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 13px;
+            margin: 0 12px;
+            transition: color 0.2s;
+        }
+
+        .email-footer .footer-links a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .email-footer .social-icons {
+            margin: 12px 0 10px;
+        }
+
+        .email-footer .social-icons a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #7a7a8a;
+            font-size: 18px;
+            text-decoration: none;
+        }
+
+        .email-footer .social-icons a:hover {
+            color: #667eea;
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+
+        /* Tablets & Small Laptops (max-width: 768px) */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .email-wrapper {
+                border-radius: 8px;
+            }
+
+            .email-header {
+                padding: 30px 20px;
+            }
+
+            .email-header .logo {
+                font-size: 24px;
+            }
+
+            .email-body {
+                padding: 25px 18px;
+            }
+
+            .greeting {
+                font-size: 20px;
+            }
+
+            .details-card {
+                padding: 18px 16px;
+            }
+
+            .details-card .detail-row {
+                font-size: 13px;
+                padding: 6px 0;
+                flex-wrap: wrap;
+            }
+
+            .details-card .value {
+                text-align: left;
+                margin-top: 2px;
+                width: 100%;
+            }
+
+            .btn-primary {
+                padding: 12px 30px;
+                font-size: 14px;
+                width: 100%;
+                max-width: 320px;
+            }
+        }
+
+        /* Mobile Phones (max-width: 480px) */
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 8px;
+                background-color: #ffffff;
+            }
+
+            .email-wrapper {
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .email-header {
+                padding: 24px 16px;
+            }
+
+            .email-header .logo {
+                font-size: 20px;
+            }
+
+            .email-header .subtitle {
+                font-size: 12px;
+            }
+
+            .email-body {
+                padding: 20px 14px;
+            }
+
+            .greeting {
+                font-size: 18px;
+            }
+
+            .intro-text {
+                font-size: 14px;
+                margin-bottom: 18px;
+            }
+
+            .details-card {
+                padding: 14px 12px;
+                border-left-width: 3px;
+                border-radius: 8px;
+            }
+
+            .details-card .detail-row {
+                font-size: 13px;
+                padding: 7px 0;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .details-card .value {
+                text-align: left;
+                margin-top: 1px;
+                width: 100%;
+            }
+
+            .status-badge {
+                font-size: 10px;
+                padding: 3px 12px;
+            }
+
+            .progress-section .status-label {
+                font-size: 12px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 3px;
+            }
+
+            .btn-primary {
+                padding: 12px 20px;
+                font-size: 14px;
+                width: 100%;
+                max-width: 100%;
+                border-radius: 30px;
+            }
+
+            .btn-wrapper {
+                margin: 20px 0 5px;
+            }
+
+            .email-footer {
+                padding: 18px 14px;
+            }
+
+            .email-footer p {
+                font-size: 12px;
+            }
+
+            .email-footer .footer-links a {
+                font-size: 12px;
+                margin: 0 8px;
+                display: inline-block;
+                padding: 4px 0;
+            }
+
+            .email-footer .social-icons a {
+                font-size: 16px;
+                margin: 0 6px;
+            }
+        }
+
+        /* Large Laptops & Desktops (min-width: 1200px) */
+        @media screen and (min-width: 1200px) {
+            .email-wrapper {
+                max-width: 680px;
+            }
+
+            .email-body {
+                padding: 45px 40px;
+            }
+
+            .greeting {
+                font-size: 26px;
+            }
+
+            .details-card .detail-row {
+                font-size: 15px;
+                padding: 10px 0;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1a1a2e;
+            }
+
+            .email-wrapper {
+                background-color: #16213e;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .email-body {
+                color: #e0e0e0;
+            }
+
+            .greeting {
+                color: #ffffff;
+            }
+
+            .intro-text {
+                color: #b0b0c0;
+            }
+
+            .details-card {
+                background: #1e2a4a;
+                border-left-color: #667eea;
+            }
+
+            .details-card .detail-row {
+                border-bottom-color: #2a3a5a;
+            }
+
+            .details-card .label {
+                color: #d0d0e0;
+            }
+
+            .details-card .value {
+                color: #b0b0c0;
+            }
+
+            .email-footer {
+                background: #1e2a4a;
+                border-top-color: #2a3a5a;
+            }
+
+            .email-footer p {
+                color: #8a8a9a;
+            }
+
+            .progress-bar {
+                background-color: #2a3a5a;
+            }
+
+            .btn-primary {
+                box-shadow: 0 4px 14px rgba(102, 126, 234, 0.25);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="email-wrapper">
+
+    <!-- ===== HEADER ===== -->
+    <div class="email-header">
+        <div class="logo">📦 ShipmentApp</div>
+        <div class="subtitle">Your trusted delivery partner</div>
+    </div>
+
+    <!-- ===== BODY ===== -->
+    <div class="email-body">
+
+        <div class="greeting">
+            Hello, <span class="highlight">{{seller}}</span> 👋
+        </div>
+
+        <p class="intro-text">
+            Your shipment has been confirmed and is being processed. Here are the details of your order:
+        </p>
+
+        <!-- ===== SHIPMENT DETAILS ===== -->
+        <div class="details-card">
+            <div class="detail-row">
+                <span class="label">📋 Shipment ID: </span>
+                <span class="value"> #{{ship_id}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">📦 Content: </span>
+                <span class="value"> {{content}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">⚖️ Weight: </span>
+                <span class="value"> {{weight}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">📍 Destination: </span>
+                <span class="value"> Lagos, Nigeria</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">📅 Created:</span>
+                <span class="value"> {{created}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">📊 Status: </span>
+                <span class="value">
+                        <span class="status-badge"> {{status}}</span>
+                    </span>
+            </div>
+        </div>
+
+        <!-- ===== PROGRESS BAR ===== -->
+        <div class="progress-section">
+            <div class="status-label">
+                <span>🟢 Processing</span>
+                <span>📦 In Transit</span>
+                <span>✅ Delivered</span>
+            </div>
+            <div class="progress-bar">
+                <div class="fill" style="width: 65%;"></div>
+            </div>
+        </div>
+
+        <!-- ===== ACTION BUTTON ===== -->
+        <div class="btn-wrapper">
+            <a href="#" class="btn-primary">🔍 Track Your Shipment</a>
+        </div>
+
+        <p style="font-size: 13px; color: #7a7a8a; text-align: center; margin-top: 18px;">
+            Or copy this link to your browser: <br>
+            <span style="color: #667eea; word-break: break-all;">https://shipmentapp.com/track/{{ship_id}}</span>
+        </p>
+
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <div class="email-footer">
+        <div class="social-icons">
+            <a href="#" title="Twitter">🐦</a>
+            <a href="#" title="LinkedIn">🔗</a>
+            <a href="#" title="Instagram">📸</a>
+            <a href="#" title="YouTube">▶️</a>
+        </div>
+
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Help Center</a>
+        </div>
+
+        <p>
+            © 2026 ShipmentApp. All rights reserved. <br>
+            123 Delivery Street, Lagos, Nigeria
+        </p>
+
+        <p style="font-size: 11px; color: #9a9aaa; margin-top: 8px;">
+            This email was sent to <strong>{{client_email}}</strong>. <br>
+            If you didn't request this, please <a href="#" style="color: #667eea;">unsubscribe</a>.
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>
