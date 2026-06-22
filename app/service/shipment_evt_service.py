@@ -3,20 +3,22 @@ from operator import attrgetter
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.model.shipment_model import Shipment, ShipmentStatus, ShipmentEvent
+from app.notifications.email_service import NotificationService
 from app.service.base_service import BaseService
 
 
 class ShipmentEventService(BaseService):
     def __init__(self, session: AsyncSession):
-        super().__init__(model=Shipment, session=session)
+        super().__init__(model=ShipmentEvent, session=session)
+        self.notification_service = NotificationService()
 
     async def add_shipment_evt(self, shipment: Shipment,
                                location: int | None = None,
                                description: str | None = None,
                                status: ShipmentStatus | None = None):
 
-        if not location or not description:
-            last_event = await self.get_latest_shipment(shipment)
+        last_event = await self.get_latest_shipment(shipment)
+        if last_event:
             location = location if location is not None else last_event.location
             status = status if status is not None else last_event.status
             description = description if description is not None else self._generate_description(status, location)
@@ -27,6 +29,8 @@ class ShipmentEventService(BaseService):
             status=status,
             shipment_id=shipment.ship_id
         )
+
+        await self._notify(shipment=shipment, status=status|None)
 
         return await self._add(new_shipment_evt)
 
@@ -50,3 +54,12 @@ class ShipmentEventService(BaseService):
                 return "shipment cancelled by seller"
             case _:
                 return f"scanned at {location}"
+
+    async def _notify(self, shipment: Shipment, status: ShipmentStatus):
+        match status:
+            case ShipmentStatus.PLACED:
+                await self.notification_service.send_email_message(
+                    recipients=[shipment.client_contact_email],
+                    msg_subject="Your Order is shipped",
+                    msg_body=f"Your order with {shipment.seller.user_name} is picked up by {shipment.delivery.user_name} and is on it's way to you"
+                )
