@@ -12,7 +12,8 @@ from app.service.shipment_evt_service import ShipmentEventService
 
 
 class ShipmentServices(BaseService):
-    def __init__(self, session: AsyncSession, partner_service: DeliveryPartnerService, event_service: ShipmentEventService):
+    def __init__(self, session: AsyncSession, partner_service: DeliveryPartnerService,
+                 event_service: ShipmentEventService):
         super().__init__(model=Shipment, session=session)
         self.partner_service = partner_service
         self.event_service = event_service

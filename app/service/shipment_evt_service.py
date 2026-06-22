@@ -8,14 +8,14 @@ from app.service.base_service import BaseService
 
 
 class ShipmentEventService(BaseService):
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, task):
         super().__init__(model=ShipmentEvent, session=session)
-        self.notification_service = NotificationService()
+        self.notification_service = NotificationService(task=task)
 
     async def add_shipment_evt(self, shipment: Shipment,
                                location: int | None = None,
                                description: str | None = None,
-                               status: ShipmentStatus | None = None):
+                               status: ShipmentStatus = ShipmentStatus.PLACED):
 
         last_event = await self.get_latest_shipment(shipment)
         if last_event:
@@ -56,20 +56,27 @@ class ShipmentEventService(BaseService):
                 return f"scanned at {location}"
 
     async def _notify(self, shipment: Shipment, status: ShipmentStatus):
+        print("NOTIFY called")
+        print(status)
+        print("=======================")
+        print(shipment.seller.user_name)
+        print(shipment.delivery.user_name)
+        print("==========================")
+
         match status:
             case ShipmentStatus.PLACED:
                 await self.notification_service.send_email_message(
                     recipients=[shipment.client_contact_email],
                     msg_subject="Your Order is shipped",
                     msg_body=f"Your order with {shipment.seller.user_name} is picked up by {shipment.delivery.user_name}"
-                             f"and is on it's way to you"
+                             f" and is on it's way to you"
                 )
             case ShipmentStatus.IN_TRANSIT:
                 await self.notification_service.send_email_message(
                     recipients=[shipment.client_contact_email],
                     msg_subject="Your order is shipped",
                     msg_body=f"Your order with {shipment.seller.user_name} is on transit with {shipment.delivery.user_name}"
-                             f"and is on it's way to you"
+                             f" and is on it's way to you"
                 )
             case ShipmentStatus.OUT_OF_DELIVERY:
                 await self.notification_service.send_email_message(

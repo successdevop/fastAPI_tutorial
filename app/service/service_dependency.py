@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, BackgroundTasks
 
 from app.database.session import SessionDep
 from app.service.deliver_service import DeliveryPartnerService
@@ -13,11 +13,11 @@ def get_delivery_service(session: SessionDep):
     return DeliveryPartnerService(session=session)
 
 
-def get_shipment_service(session: SessionDep):
+def get_shipment_service(session: SessionDep, task: BackgroundTasks):
     return ShipmentServices(
         session=session,
         partner_service=DeliveryPartnerService(session=session),
-        event_service=ShipmentEventService(session=session)
+        event_service=ShipmentEventService(session=session, task=task)
     )
 
 
