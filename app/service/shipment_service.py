@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+from starlette.templating import Jinja2Templates
 
 from app.dependency.user_dependency import DeliveryPartnerDep, SellerDep
 from app.model.seller_model import Seller
@@ -9,6 +10,10 @@ from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSche
 from app.service.base_service import BaseService
 from app.service.deliver_service import DeliveryPartnerService
 from app.service.shipment_evt_service import ShipmentEventService
+from app.util import TEMPLATE_DIR
+
+
+template = Jinja2Templates(TEMPLATE_DIR)
 
 
 class ShipmentServices(BaseService):
@@ -96,6 +101,29 @@ class ShipmentServices(BaseService):
         shipment.timeline.append(event)
 
         return shipment
+
+    async def track_shipment(self, request, s_id: str):
+        shipment = await self._get(uid=s_id)
+        if not shipment:
+            raise HTTPException(detail=f"Shipment with id {s_id} not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        # if seller.id != shipment.seller_id:
+        #     raise HTTPException(detail="Not authorized", status_code=status.HTTP_401_UNAUTHORIZED)
+
+        context = shipment.model_dump()
+        context["partner"] = shipment.delivery.user_name
+        context["status"] = shipment.status
+        context["timeline"] = shipment.timeline
+
+        return template.TemplateResponse(
+            request=request,
+            name="track_shipment.html",
+            context=context
+        )
+
+
+
+
 
 
 
