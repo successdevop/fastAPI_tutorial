@@ -2,7 +2,6 @@ import re
 from typing import Type, Tuple
 
 from fastapi import HTTPException, status, BackgroundTasks
-from pydantic_settings.sources.providers import aws
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -87,14 +86,6 @@ class UserService(BaseService):
 
         return user
 
-    async def _delete_user(self, s_id: str):
-        user = await self._get(uid=s_id)
-        if not user:
-            raise HTTPException(detail=f"user with ID ({s_id}) not found",
-                                status_code=status.HTTP_404_NOT_FOUND)
-
-        return await self._delete(user)
-
     async def verify_email(self, token: str):
         token_data = decode_url_safe_token(token=token)
         if not token_data:
@@ -105,6 +96,31 @@ class UserService(BaseService):
         user.email_verified = True
 
         await self._update(user)
+
+    async def _delete_user(self, s_id: str):
+        user = await self._get(uid=s_id)
+        if not user:
+            raise HTTPException(detail=f"user with ID ({s_id}) not found",
+                                status_code=status.HTTP_404_NOT_FOUND)
+
+        return await self._delete(user)
+
+    async def send_password_reset_link(self, email: str, router_prefix):
+        user = await self._get_by_email(email=email)
+        if not user:
+            raise HTTPException(detail=f"user with email ({email}) not found",
+                                status_code=status.HTTP_404_NOT_FOUND)
+
+        token = generate_url_safe_token({"id": user.id}, salt="reset_password")
+        await self._notification.send_email_message_with_html(
+            recipients=[user.email],
+            subject_msg="Reset your password",
+            context={
+                "username": user.user_name,
+                "reset_url": f"http://{app_settings.APP_DOMAIN}/{router_prefix}/forgot_password?token={token}"
+            },
+            template_name="reset_password.html"
+        )
 
 
     @staticmethod
