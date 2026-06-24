@@ -23,7 +23,7 @@ class DeliveryPartnerService(UserService):
 
     async def register_delivery_partner(self, req_body: CreateDeliverySchema) -> DeliveryPartner:
         partner_data = req_body.model_dump()
-        new_delivery_partner = await self._add_user(partner_data)
+        new_delivery_partner = await self._add_user(partner_data, router_prefix="partner")
         return new_delivery_partner
 
     async def get_delivery_partner_by_zipcode(self, zipcode: int) -> Sequence[DeliveryPartner]:

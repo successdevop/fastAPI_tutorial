@@ -2,6 +2,7 @@ import re
 from typing import Type, Tuple
 
 from fastapi import HTTPException, status, BackgroundTasks
+from pydantic_settings.sources.providers import aws
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -9,7 +10,8 @@ from app.config import app_settings
 from app.notifications.email_service import NotificationService
 from app.service.base_service import BaseService
 from app.model.base_model import User
-from app.auth.auth_utils import verify_password, generate_token, generate_passwd_hash, generate_url_safe_token
+from app.auth.auth_utils import verify_password, generate_token, generate_passwd_hash, generate_url_safe_token, \
+    decode_url_safe_token
 
 
 class UserService(BaseService):
@@ -42,7 +44,7 @@ class UserService(BaseService):
 
         return token
 
-    async def _add_user(self, user_data: dict):
+    async def _add_user(self, user_data: dict, router_prefix: str):
         if not self._validate_email(user_data["email"]):
             raise HTTPException(detail="Invalid email format", status_code=status.HTTP_401_UNAUTHORIZED)
 
@@ -78,12 +80,31 @@ class UserService(BaseService):
             subject_msg="Verify your account with Shipment_App",
             context={
                 "username": user.user_name,
-                "verification_url": f"http://{app_settings.APP_DOMAIN}/user/verify?token={token}"
+                "verification_url": f"http://{app_settings.APP_DOMAIN}/{router_prefix}/verify?token={token}"
             },
-            template_name="email_verification.html"
+            template_name="email_verification_for_registration.html"
         )
 
         return user
+
+    async def _delete_user(self, s_id: str):
+        user = await self._get(uid=s_id)
+        if not user:
+            raise HTTPException(detail=f"user with ID ({s_id}) not found",
+                                status_code=status.HTTP_404_NOT_FOUND)
+
+        return await self._delete(user)
+
+    async def verify_email(self, token: str):
+        token_data = decode_url_safe_token(token=token)
+        if not token_data:
+            raise HTTPException(detail="Invalid token", status_code=status.HTTP_400_BAD_REQUEST)
+
+        u_id = token_data["id"]
+        user = await self._get(uid=u_id)
+        user.email_verified = True
+
+        await self._update(user)
 
 
     @staticmethod

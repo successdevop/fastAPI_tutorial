@@ -20,6 +20,12 @@ async def get_all_sellers(seller_service: SellerServiceDep):
     return await seller_service.get_all_sellers()
 
 
+@seller_router.get("/verify")
+async def verify_seller_mail(token: str, service: SellerServiceDep):
+    await service.verify_email(token=token)
+    return {"detail":"Account verified"}
+
+
 # Login user
 @seller_router.post("/login", response_model=dict, status_code=status.HTTP_200_OK)
 async def login_seller(req_form: Annotated[OAuth2PasswordRequestForm, Depends()], seller_service: SellerServiceDep):
@@ -34,3 +40,8 @@ async def logout_seller(token_data: Annotated[dict, Depends(get_seller_access_to
     except Exception as e:
         print(f"Logout error | {e}")
         raise
+
+@seller_router.delete("/delete/{s_id}")
+async def delete_seller(s_id: str, seller_service: SellerServiceDep):
+    await seller_service.delete_seller(s_id=s_id)
+    return {"details":"deleted successfully"}

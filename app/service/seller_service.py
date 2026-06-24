@@ -17,11 +17,13 @@ class SellerService(UserService):
         result = await self.session.exec(select(self.model))
         return result.all()
 
+    async def delete_seller(self, s_id: str):
+        return await self._delete_user(s_id=s_id)
+
     async def register_seller(self, req_body: CreateSellerSchema) -> Seller:
         data = req_body.model_dump()
-        result = await self._add_user(user_data=data)
+        result = await self._add_user(user_data=data, router_prefix="sellers")
         return result
-
 
     async def login_func(self, email: str, password) -> dict[str, Any]:
         token = await self._generate_token(email=email, password=password)
