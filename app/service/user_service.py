@@ -1,4 +1,5 @@
 import re
+from datetime import timedelta
 from typing import Type, Tuple
 
 from fastapi import HTTPException, status, BackgroundTasks
@@ -117,10 +118,24 @@ class UserService(BaseService):
             subject_msg="Reset your password",
             context={
                 "username": user.user_name,
-                "reset_url": f"http://{app_settings.APP_DOMAIN}/{router_prefix}/forgot_password?token={token}"
+                "reset_url": f"http://{app_settings.APP_DOMAIN}/{router_prefix}/reset_password?token={token}"
             },
             template_name="reset_password.html"
         )
+
+    async def reset_password(self, token: str, password: str):
+        token_data = decode_url_safe_token(
+            token=token,
+            salt="reset_password",
+            expiry=timedelta(days=1)
+        )
+        if not token_data:
+            raise HTTPException(detail="Invalid or expired token", status_code=status.HTTP_400_BAD_REQUEST)
+
+        uid = token_data["id"]
+        user = await self._get(uid=uid)
+        user.password_hash = generate_passwd_hash(password=password)
+        return await self._update(user)
 
 
     @staticmethod

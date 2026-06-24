@@ -22,7 +22,7 @@ def verify_password(password: str, hashed_password: str) -> bool:
     return pw_ctx.verify(password, hashed_password)
 
 
-def generate_token(user_data: dict, expiry: timedelta = None) -> str:
+def generate_token(user_data: dict, expiry: timedelta | None = None) -> str:
     access_token_expiry: int = 1800
 
     payload = {
