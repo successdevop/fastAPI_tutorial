@@ -3,8 +3,13 @@ from datetime import timedelta, datetime, timezone
 from typing import Any, Optional
 
 import jwt
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from passlib.context import CryptContext
+
 from app.config import security_settings
+
+
+_serializer = URLSafeTimedSerializer(security_settings.JWT_SECRET)
 
 
 def generate_passwd_hash(password: str) -> str:
@@ -43,4 +48,18 @@ def decode_token(token: str) -> Optional[dict[str, Any]]:
             algorithms=[security_settings.JWT_ALGORITHM]
         )
     except jwt.PyJWTError:
+        return None
+
+
+def generate_url_safe_token(data: dict) -> str:
+    return _serializer.dumps(data)
+
+
+def decode_url_safe_token(token: str, expiry: timedelta | None = None) -> dict | None:
+    try:
+        return _serializer.loads(
+            s=token,
+            max_age=int(expiry.total_seconds()) if expiry else None
+        )
+    except (BadSignature | SignatureExpired):
         return None

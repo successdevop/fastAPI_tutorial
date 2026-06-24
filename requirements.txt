@@ -1,6 +1,7 @@
 fastapi
 pydantic
 fastapi[standard]
+fastapi[all]
 asyncpg
 pydantic-settings
 python-dotenv
@@ -11,4 +12,5 @@ passlib
 pyjwt
 redis[hiredis]
 fastapi-mail
+jinja2
 scalar-fastapi

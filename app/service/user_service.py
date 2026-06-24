@@ -29,6 +29,10 @@ class UserService(BaseService):
         if user is None or not verify_password(password=password, hashed_password=user.password_hash):
             raise HTTPException(detail="Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
 
+        if not user.email_verified:
+            raise HTTPException(detail="Email not verified", status_code=status.HTTP_401_UNAUTHORIZED)
+
+
         token = generate_token(user_data={
             "id": user.id,
             "username": user.user_name
