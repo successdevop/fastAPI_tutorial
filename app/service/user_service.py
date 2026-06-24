@@ -1,18 +1,21 @@
 import re
 from typing import Type, Tuple
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, BackgroundTasks
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.config import app_settings
+from app.notifications.email_service import NotificationService
 from app.service.base_service import BaseService
 from app.model.base_model import User
-from app.auth.auth_utils import verify_password, generate_token, generate_passwd_hash
+from app.auth.auth_utils import verify_password, generate_token, generate_passwd_hash, generate_url_safe_token
 
 
 class UserService(BaseService):
-    def __init__(self, model: Type[User], session: AsyncSession):
+    def __init__(self, model: Type[User], session: AsyncSession, task: BackgroundTasks):
         super().__init__(model=model, session=session)
+        self._notification = NotificationService(task=task)
 
     async def _get_by_email(self, email: str) -> User | None:
         return (await self.session.exec(
@@ -31,7 +34,6 @@ class UserService(BaseService):
 
         if not user.email_verified:
             raise HTTPException(detail="Email not verified", status_code=status.HTTP_401_UNAUTHORIZED)
-
 
         token = generate_token(user_data={
             "id": user.id,
@@ -62,7 +64,27 @@ class UserService(BaseService):
             password_hash=generate_passwd_hash(user_data["password"])
         )
 
-        return await self._add(new_user)
+        user = await self._add(new_user)
+
+        token = generate_url_safe_token(
+            {
+                "email": user.email,
+                "id": user.id
+            }
+        )
+
+        await self._notification.send_email_message_with_html(
+            recipients=[user.email],
+            subject_msg="Verify your account with Shipment_App",
+            context={
+                "username": user.user_name,
+                "verification_url": f"http://{app_settings.APP_DOMAIN}/user/verify?token={token}"
+            },
+            template_name="email_verification.html"
+        )
+
+        return user
+
 
     @staticmethod
     def _validate_email(email: str) -> bool:

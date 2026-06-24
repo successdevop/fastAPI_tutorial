@@ -10,8 +10,8 @@ from app.service.user_service import UserService
 
 
 class SellerService(UserService):
-    def __init__(self, session:AsyncSession):
-        super().__init__(model=Seller, session=session)
+    def __init__(self, session:AsyncSession, task):
+        super().__init__(model=Seller, session=session, task=task)
 
     async def get_all_sellers(self):
         result = await self.session.exec(select(self.model))
