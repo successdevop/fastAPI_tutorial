@@ -12,7 +12,8 @@ _token_blacklist = Redis(
 _shipment_verification_code = Redis(
     host=db_settings.REDIS_HOST,
     port=db_settings.REDIS_PORT,
-    db=1
+    db=1,
+    decode_responses=True
 )
 
 
@@ -36,5 +37,5 @@ async def add_shipment_verification_code(s_id: str, code):
     await _shipment_verification_code.set(s_id, code)
 
 
-async def get_shipment_verification_code(s_id: str):
-    await _shipment_verification_code.get(s_id)
+async def get_shipment_verification_code(s_id: str) -> str:
+    return str(await _shipment_verification_code.get(s_id))

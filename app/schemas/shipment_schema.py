@@ -66,3 +66,4 @@ class ShipmentUpdateSchema(BaseModel):
     status: Optional[ShipmentStatus] = Field(default=None)
     location: Optional[int] = Field(default=None)
     description: Optional[str] = Field(default=None)
+    verification_code: str | None = Field(default=None)

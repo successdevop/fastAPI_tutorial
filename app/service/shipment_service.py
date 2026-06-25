@@ -3,6 +3,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.templating import Jinja2Templates
 
+from app.database.redis_conn import get_shipment_verification_code
 from app.dependency.user_dependency import DeliveryPartnerDep, SellerDep
 from app.model.seller_model import Seller
 from app.model.shipment_model import Shipment, ShipmentStatus
@@ -54,7 +55,13 @@ class ShipmentServices(BaseService):
         if shipment.del_partner_id != partner.id:
             raise HTTPException(detail="Not authorized", status_code=status.HTTP_401_UNAUTHORIZED)
 
-        shipment_data = req_body.model_dump(exclude_none=True)
+        if req_body.status == ShipmentStatus.DELIVERED:
+            code = await get_shipment_verification_code(s_id)
+
+            if code != req_body.verification_code:
+                raise HTTPException(detail="Client not authorized", status_code=status.HTTP_401_UNAUTHORIZED)
+
+        shipment_data = req_body.model_dump(exclude_none=True, exclude=["verification_code"])
         if not shipment_data:
             raise HTTPException(detail="No data provided for update", status_code=status.HTTP_400_BAD_REQUEST)
 
