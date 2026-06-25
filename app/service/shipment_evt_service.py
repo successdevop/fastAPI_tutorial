@@ -103,7 +103,7 @@ class ShipmentEventService(BaseService):
                 await add_shipment_verification_code(shipment.ship_id, code)
 
                 if shipment.client_contact_phone:
-                    await self.sms_service.send_sms_notification(
+                    self.sms_service.send_sms_notification(
                         recipient_number=shipment.client_contact_phone,
                         message=f"Your order is arriving soon! Share the code ({code}) with the delivery executive to "
                                 f"receive your package"

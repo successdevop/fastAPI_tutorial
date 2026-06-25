@@ -1,3 +1,5 @@
+import traceback
+
 from fastapi import BackgroundTasks, HTTPException
 from pingram import Pingram
 
@@ -9,12 +11,6 @@ class SMSService:
         self._task = task
 
     async def _send_sms(self, recipient_number: str, message: str):
-        if not recipient_number:
-            raise ValueError("Recipient number is required")
-
-        if not message.strip():
-            raise ValueError("Message cannot be empty")
-
         try:
             # Prepare notification payload
             notification_payload = {
@@ -40,9 +36,20 @@ class SMSService:
                 "response": response
             }
         except Exception as e:
-            raise HTTPException(detail=str(e), status_code=500)
+            print("=" * 80)
+            print(f"failed to send SMS to {recipient_number} || {e}")
+            print(type(e))
+            print(repr(e))
+            traceback.print_exc()
+            print("=" * 80)
 
-    async def send_sms_notification(self, recipient_number: str, message: str):
+    def send_sms_notification(self, recipient_number: str, message: str):
+        if not recipient_number:
+            raise ValueError("Recipient number is required")
+
+        if not message.strip():
+            raise ValueError("Message cannot be empty")
+        
         self._task.add_task(
             self._send_sms,
             recipient_number=recipient_number,
