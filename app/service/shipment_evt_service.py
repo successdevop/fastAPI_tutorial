@@ -1,10 +1,13 @@
 from datetime import datetime
 from operator import attrgetter
+from random import randint
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.database.redis_conn import add_shipment_verification_code
 from app.model.shipment_model import Shipment, ShipmentStatus, ShipmentEvent
 from app.notifications.email_service import NotificationService
+from app.notifications.sms_service import SMSService
 from app.service.base_service import BaseService
 
 
@@ -12,6 +15,7 @@ class ShipmentEventService(BaseService):
     def __init__(self, session: AsyncSession, task):
         super().__init__(model=ShipmentEvent, session=session)
         self.notification_service = NotificationService(task=task)
+        self.sms_service = SMSService(task=task)
 
     async def add_shipment_evt(self, shipment: Shipment,
                                location: int | None = None,
@@ -94,6 +98,16 @@ class ShipmentEventService(BaseService):
                     msg_body=f"Your order with {shipment.seller.user_name} is on transit with {shipment.delivery.user_name}"
                              f" and is on it's way to you"
                 )
+
+                code = randint(100_000, 999_999)
+                await add_shipment_verification_code(shipment.ship_id, code)
+
+                if shipment.client_contact_phone:
+                    await self.sms_service.send_sms_notification(
+                        recipient_number=shipment.client_contact_phone,
+                        message=f"Your order is arriving soon! Share the code ({code}) with the delivery executive to "
+                                f"receive your package"
+                    )
 
             case ShipmentStatus.OUT_OF_DELIVERY:
                 await self.notification_service.send_email_message(

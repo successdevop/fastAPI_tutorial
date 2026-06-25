@@ -9,6 +9,12 @@ _token_blacklist = Redis(
     db=0
 )
 
+_shipment_verification_code = Redis(
+    host=db_settings.REDIS_HOST,
+    port=db_settings.REDIS_PORT,
+    db=1
+)
+
 
 async def add_jti_to_blacklist(jti: str):
     try:
@@ -24,3 +30,11 @@ async def is_jti_blacklisted(jti: str) -> bool:
     except Exception as e:
         print(f"Redis error | {e}")
         return False
+
+
+async def add_shipment_verification_code(s_id: str, code):
+    await _shipment_verification_code.set(s_id, code)
+
+
+async def get_shipment_verification_code(s_id: str):
+    await _shipment_verification_code.get(s_id)

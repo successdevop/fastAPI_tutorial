@@ -13,4 +13,5 @@ pyjwt
 redis[hiredis]
 fastapi-mail
 jinja2
+pingram-python
 scalar-fastapi

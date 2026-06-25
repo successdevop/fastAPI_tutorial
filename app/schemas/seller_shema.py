@@ -8,6 +8,7 @@ class BaseSellerSchema(BaseModel):
     id: str = Field(description="Seller unique ID")
     user_name: str = Field(description="Seller unique username")
     email: str = Field(description="Seller unique email")
+    email_verified: bool | None
     password_hash: str = Field(description="Seller password", exclude=True)
     address: str = Field(description="seller's address")
     zip_code: int = Field(description="seller's zip code")

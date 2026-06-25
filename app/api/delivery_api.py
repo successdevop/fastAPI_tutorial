@@ -37,3 +37,8 @@ async def logout_delivery_partner(token_data: Annotated[dict, Depends(get_d_part
     except Exception as e:
         print(f"Logout error | {e}")
         raise
+
+@delivery_router.get("/verify")
+async def verify_seller_mail(token: str, service: DeliveryServiceDep):
+    await service.verify_email(token=token)
+    return {"detail":"Account verified"}

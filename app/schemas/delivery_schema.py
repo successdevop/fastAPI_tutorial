@@ -8,6 +8,7 @@ class BaseDeliverySchema(BaseModel):
     id: str = Field(description="Delivery partner unique ID")
     user_name: str = Field(description="Delivery partner unique username")
     email: str = Field(description="Delivery partner unique email")
+    email_verified: bool | None
     password_hash: str = Field(description="Delivery partner password", exclude=True)
     serviceable_zip_codes: list[int] = Field(description="List of all serviceable zip code destinations")
     max_handling_capacity: int = Field(description="Maximum capacity for delivery")
