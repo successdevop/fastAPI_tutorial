@@ -37,8 +37,12 @@ class Shipment(SQLModel, table=True):
     content: str = Field(nullable=False)
     weight: float = Field(nullable=False)
     destination: int = Field(nullable=False)
+
     timeline: list["ShipmentEvent"] = Relationship(back_populates="shipment",
                                                    sa_relationship_kwargs={"lazy":"selectin", "cascade": "all, delete-orphan"})
+
+    review: "ShipmentReview" = Relationship(back_populates="shipment",
+                                            sa_relationship_kwargs={"lazy":"selectin", "cascade":"all, delete-orphan"})
 
     client_contact_email: str | None = Field(default=None)
     client_contact_phone: str | None = Field(default=None)
@@ -82,3 +86,26 @@ class ShipmentEvent(SQLModel, table=True):
     description: Optional[str] = Field(default=None)
     shipment_id: str = Field(foreign_key="shipment.ship_id", nullable=False, ondelete="CASCADE")
     shipment: "Shipment" = Relationship(back_populates="timeline", sa_relationship_kwargs={"lazy":"selectin"})
+
+
+class ShipmentReview(SQLModel, table=True):
+    __tablename__ = "shipment_review"
+
+    review_id: str = Field(
+        default_factory=lambda : str(uuid.uuid4()),
+        primary_key=True,
+        index=True,
+        nullable=False
+    )
+
+    created_at: datetime = Field(
+        default_factory=get_current_time,
+        sa_column=Column(TIMESTAMP(timezone=True), nullable=False)
+    )
+
+    rating: int = Field(ge=1, le=5, nullable=True)
+    comment: str = Field(default=None, nullable=True)
+    
+    shipment_id: str = Field(foreign_key="shipment.ship_id", nullable=False, ondelete="CASCADE")
+
+    shipment: "Shipment" = Relationship(back_populates="review", sa_relationship_kwargs={"lazy":"selectin"})
