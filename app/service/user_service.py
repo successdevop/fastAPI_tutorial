@@ -11,7 +11,7 @@ from app.service.base_service import BaseService
 from app.model.base_model import User
 from app.auth.auth_utils import verify_password, generate_token, generate_passwd_hash, generate_url_safe_token, \
     decode_url_safe_token
-from app.worker.tasks import send_email_message_with_html
+from app.worker.tasks import send_html_email
 
 
 class UserService(BaseService):
@@ -74,7 +74,7 @@ class UserService(BaseService):
             }
         )
 
-        send_email_message_with_html.delay(
+        send_html_email.delay(
             recipients=[user.email],
             subject_msg="Verify your account with Shipment_App",
             context={
@@ -112,7 +112,7 @@ class UserService(BaseService):
                                 status_code=status.HTTP_404_NOT_FOUND)
 
         token = generate_url_safe_token({"id": user.id}, salt="reset_password")
-        send_email_message_with_html.delay(
+        send_html_email.delay(
             recipients=[user.email],
             subject_msg="Reset your password",
             context={

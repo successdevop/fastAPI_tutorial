@@ -10,7 +10,7 @@ from app.database.redis_conn import add_shipment_verification_code
 from app.model.shipment_model import Shipment, ShipmentStatus, ShipmentEvent
 from app.notifications.sms_service import SMSService
 from app.service.base_service import BaseService
-from app.worker.tasks import send_email_message_with_html, send_email_message
+from app.worker.tasks import send_html_email, send_plain_email
 
 
 class ShipmentEventService(BaseService):
@@ -71,7 +71,7 @@ class ShipmentEventService(BaseService):
 
         match status:
             case status.PLACED:
-                send_email_message_with_html.delay(
+                send_html_email.delay(
                     recipients=[shipment.client_contact_email],
                     subject_msg="Your order is being processed",
                     context={
@@ -87,7 +87,7 @@ class ShipmentEventService(BaseService):
                 )
 
             case ShipmentStatus.IN_TRANSIT:
-                send_email_message.delay(
+                send_plain_email.delay(
                     recipients=[shipment.client_contact_email],
                     msg_subject="Your order is shipped",
                     msg_body=f"Your order with {shipment.seller.user_name} is on transit with {shipment.delivery.user_name}"
@@ -105,7 +105,7 @@ class ShipmentEventService(BaseService):
                     )
 
             case ShipmentStatus.OUT_OF_DELIVERY:
-                send_email_message.delay(
+                send_plain_email.delay(
                     recipients=[shipment.client_contact_email],
                     msg_subject="Your order is on queue",
                     msg_body=f"shipment is currently out of stock"
@@ -114,7 +114,7 @@ class ShipmentEventService(BaseService):
             case ShipmentStatus.DELIVERED:
                 token = generate_url_safe_token({"id": shipment.ship_id})
 
-                send_email_message_with_html.delay(
+                send_html_email.delay(
                     recipients=[shipment.client_contact_email],
                     subject_msg="Your order is Delivered",
                     context = {

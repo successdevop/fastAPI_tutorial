@@ -21,11 +21,11 @@ app = Celery(
 )
 
 
-send_email_message = async_to_sync(fast_mail.send_message)
+email_sender = async_to_sync(fast_mail.send_message)
 
 
 @app.task
-def send_email_message(recipients: list, msg_subject: str, msg_body: str):
+def send_plain_email(recipients: list, msg_subject: str, msg_body: str):
     try:
         message=MessageSchema(
             recipients=recipients,
@@ -34,7 +34,7 @@ def send_email_message(recipients: list, msg_subject: str, msg_body: str):
             subtype=MessageType.plain
         )
 
-        send_email_message(message=message)
+        email_sender(message=message)
         # await self._fastmail.send_message(message=message)
         print("==================================")
         print(f"Email sent to {recipients}")
@@ -46,7 +46,7 @@ def send_email_message(recipients: list, msg_subject: str, msg_body: str):
 
 
 @app.task
-def send_email_message_with_html(recipients: list, subject_msg: str, context: dict, template_name: str):
+def send_html_email(recipients: list, subject_msg: str, context: dict, template_name: str):
     print("SEND EMAIL CALLED")
 
     try:
@@ -57,7 +57,7 @@ def send_email_message_with_html(recipients: list, subject_msg: str, context: di
             subtype=MessageType.html
         )
 
-        send_email_message(
+        email_sender(
             message=message,
             template_name=template_name
         )
