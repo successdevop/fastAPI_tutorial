@@ -3,11 +3,12 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.templating import Jinja2Templates
 
+from app.auth.auth_utils import decode_url_safe_token
 from app.database.redis_conn import get_shipment_verification_code
 from app.dependency.user_dependency import DeliveryPartnerDep, SellerDep
 from app.model.seller_model import Seller
-from app.model.shipment_model import Shipment, ShipmentStatus
-from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSchema
+from app.model.shipment_model import Shipment, ShipmentStatus, ShipmentsReview
+from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSchema, ShipmentReview
 from app.service.base_service import BaseService
 from app.service.deliver_service import DeliveryPartnerService
 from app.service.shipment_evt_service import ShipmentEventService
@@ -64,7 +65,6 @@ class ShipmentServices(BaseService):
         shipment_data = req_body.model_dump(exclude_none=True, exclude=["verification_code"])
         if not shipment_data:
             raise HTTPException(detail="No data provided for update", status_code=status.HTTP_400_BAD_REQUEST)
-
 
         await self.event_service.add_shipment_evt(
             shipment=shipment,
@@ -127,6 +127,23 @@ class ShipmentServices(BaseService):
             name="track_shipment.html",
             context=context
         )
+
+    async def rate(self, token: str, rating: int | None, comment: str | None):
+        token_data = decode_url_safe_token(token=token)
+
+        if not token_data:
+            raise HTTPException(detail="Invalid token", status_code=status.HTTP_400_BAD_REQUEST)
+
+        shipment = await self._get(uid=token_data["id"])
+
+        new_review = ShipmentsReview(
+            rating=rating,
+            comment=comment,
+            shipment_id=shipment.ship_id
+        )
+
+        await self._add(new_review)
+        return {"details":"Review submitted"}
 
 
 

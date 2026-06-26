@@ -67,3 +67,8 @@ class ShipmentUpdateSchema(BaseModel):
     location: Optional[int] = Field(default=None)
     description: Optional[str] = Field(default=None)
     verification_code: str | None = Field(default=None)
+
+
+class ShipmentReview(BaseModel):
+    rating: int | None = Field(ge=1, le=5)
+    comment: str | None = Field(default=None)

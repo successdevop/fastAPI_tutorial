@@ -75,7 +75,7 @@ class UserService(BaseService):
             }
         )
 
-        await self._notification.send_email_message_with_html(
+        self._notification.send_email_message_with_html(
             recipients=[user.email],
             subject_msg="Verify your account with Shipment_App",
             context={
@@ -113,7 +113,7 @@ class UserService(BaseService):
                                 status_code=status.HTTP_404_NOT_FOUND)
 
         token = generate_url_safe_token({"id": user.id}, salt="reset_password")
-        await self._notification.send_email_message_with_html(
+        self._notification.send_email_message_with_html(
             recipients=[user.email],
             subject_msg="Reset your password",
             context={

@@ -4,6 +4,8 @@ from random import randint
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.auth.auth_utils import generate_url_safe_token
+from app.config import app_settings
 from app.database.redis_conn import add_shipment_verification_code
 from app.model.shipment_model import Shipment, ShipmentStatus, ShipmentEvent
 from app.notifications.email_service import NotificationService
@@ -70,7 +72,7 @@ class ShipmentEventService(BaseService):
 
         match status:
             case status.PLACED:
-                await self.notification_service.send_email_message_with_html(
+                self.notification_service.send_email_message_with_html(
                     recipients=[shipment.client_contact_email],
                     subject_msg="Your order is being processed",
                     context={
@@ -84,15 +86,9 @@ class ShipmentEventService(BaseService):
                     },
                     template_name="mail_placed.html"
                 )
-                # await self.notification_service.send_email_message(
-                #     recipients=[shipment.client_contact_email],
-                #     msg_subject="Your Order is shipped",
-                #     msg_body=f"Your order with {shipment.seller.user_name} is picked up by {shipment.delivery.user_name}"
-                #              f" and is on it's way to you"
-                # )
 
             case ShipmentStatus.IN_TRANSIT:
-                await self.notification_service.send_email_message(
+                self.notification_service.send_email_message(
                     recipients=[shipment.client_contact_email],
                     msg_subject="Your order is shipped",
                     msg_body=f"Your order with {shipment.seller.user_name} is on transit with {shipment.delivery.user_name}"
@@ -110,16 +106,22 @@ class ShipmentEventService(BaseService):
                     )
 
             case ShipmentStatus.OUT_OF_DELIVERY:
-                await self.notification_service.send_email_message(
+                self.notification_service.send_email_message(
                     recipients=[shipment.client_contact_email],
                     msg_subject="Your order is on queue",
                     msg_body=f"shipment is currently out of stock"
                 )
 
             case ShipmentStatus.DELIVERED:
-                await self.notification_service.send_email_message(
+                token = generate_url_safe_token({"id": shipment.ship_id})
+
+                self.notification_service.send_email_message_with_html(
                     recipients=[shipment.client_contact_email],
-                    msg_subject="Your order is Delivered",
-                    msg_body=f"Your order with {shipment.delivery.user_name} has been delivered"
+                    subject_msg="Your order is Delivered",
+                    context = {
+                        "seller": shipment.seller.user_name,
+                        "review_url":f"http://{app_settings.APP_DOMAIN}/shipments/review?token={token}"
+                    },
+                    template_name="mail_delivered.html"
                 )
 

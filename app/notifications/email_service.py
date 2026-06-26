@@ -13,7 +13,7 @@ class NotificationService:
         )
         self._fastmail = FastMail(self._config)
 
-    async def send_email_message(self, recipients: list, msg_subject: str, msg_body: str):
+    def send_email_message(self, recipients: list, msg_subject: str, msg_body: str):
         try:
             message=MessageSchema(
                 recipients=recipients,
@@ -36,7 +36,7 @@ class NotificationService:
             print(f"Failed to send email: {str(e)}")
             raise e
 
-    async def send_email_message_with_html(self, recipients: list, subject_msg: str, context: dict, template_name: str):
+    def send_email_message_with_html(self, recipients: list, subject_msg: str, context: dict, template_name: str):
         print("SEND EMAIL CALLED")
 
         try:

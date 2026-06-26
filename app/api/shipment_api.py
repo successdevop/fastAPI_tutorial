@@ -1,12 +1,18 @@
-from typing import List
+from typing import List, Annotated
 from fastapi import APIRouter, status, Request
+from fastapi.params import Form
+from starlette.templating import Jinja2Templates
 
+from app.config import app_settings
 from app.schemas.shipment_schema import BaseShipmentModel, ShipmentUpdateSchema, ShipmentCreateSchema
 from app.dependency.user_dependency import SellerDep, DeliveryPartnerDep
 from app.service.service_dependency import ShipmentServiceDep
-
+from app.util import TEMPLATE_DIR
 
 shipment_router = APIRouter()
+
+
+template = Jinja2Templates(TEMPLATE_DIR)
 
 
 @shipment_router.get("/", response_model=List[BaseShipmentModel], status_code=status.HTTP_200_OK)
@@ -34,6 +40,17 @@ async def track_shipment(request: Request, s_id: str, shipment_service: Shipment
     return await shipment_service.track_shipment(s_id=s_id, request=request)
 
 
+@shipment_router.get("/review")
+async def submit_review_page(request: Request, token: str):
+    return template.TemplateResponse(
+        request=request,
+        name="review.html",
+        context={
+            "review_url":f"http://{app_settings.APP_DOMAIN}/shipments/review?token={token}"
+        }
+    )
+
+
 @shipment_router.get("/cancel/{s_id}", response_model=BaseShipmentModel, status_code=status.HTTP_200_OK)
 async def cancel_shipment(s_id: str, seller: SellerDep, shipment_service: ShipmentServiceDep):
     return await shipment_service.cancel_shipment(s_id=s_id, seller=seller)
@@ -42,4 +59,12 @@ async def cancel_shipment(s_id: str, seller: SellerDep, shipment_service: Shipme
 @shipment_router.get("/{s_id}", response_model=BaseShipmentModel, status_code=status.HTTP_200_OK)
 async def get_a_shipment(s_id: str, shipment_service: ShipmentServiceDep):
     return await shipment_service.get_a_shipment(s_id=s_id)
+
+
+@shipment_router.post("/review")
+async def submit_review(token: str,
+                        rating: Annotated[int | None, Form(ge=1, le=5)],
+                        comment: Annotated[str | None, Form()],
+                        shipment_service: ShipmentServiceDep):
+    return await shipment_service.rate(token=token, rating=rating, comment=comment)
 
