@@ -8,15 +8,14 @@ from app.auth.auth_utils import generate_url_safe_token
 from app.config import app_settings
 from app.database.redis_conn import add_shipment_verification_code
 from app.model.shipment_model import Shipment, ShipmentStatus, ShipmentEvent
-from app.notifications.email_service import NotificationService
 from app.notifications.sms_service import SMSService
 from app.service.base_service import BaseService
+from app.worker.tasks import send_email_message_with_html, send_email_message
 
 
 class ShipmentEventService(BaseService):
     def __init__(self, session: AsyncSession, task):
         super().__init__(model=ShipmentEvent, session=session)
-        self.notification_service = NotificationService(task=task)
         self.sms_service = SMSService(task=task)
 
     async def add_shipment_evt(self, shipment: Shipment,
@@ -72,7 +71,7 @@ class ShipmentEventService(BaseService):
 
         match status:
             case status.PLACED:
-                self.notification_service.send_email_message_with_html(
+                send_email_message_with_html.delay(
                     recipients=[shipment.client_contact_email],
                     subject_msg="Your order is being processed",
                     context={
@@ -88,7 +87,7 @@ class ShipmentEventService(BaseService):
                 )
 
             case ShipmentStatus.IN_TRANSIT:
-                self.notification_service.send_email_message(
+                send_email_message.delay(
                     recipients=[shipment.client_contact_email],
                     msg_subject="Your order is shipped",
                     msg_body=f"Your order with {shipment.seller.user_name} is on transit with {shipment.delivery.user_name}"
@@ -106,7 +105,7 @@ class ShipmentEventService(BaseService):
                     )
 
             case ShipmentStatus.OUT_OF_DELIVERY:
-                self.notification_service.send_email_message(
+                send_email_message.delay(
                     recipients=[shipment.client_contact_email],
                     msg_subject="Your order is on queue",
                     msg_body=f"shipment is currently out of stock"
@@ -115,7 +114,7 @@ class ShipmentEventService(BaseService):
             case ShipmentStatus.DELIVERED:
                 token = generate_url_safe_token({"id": shipment.ship_id})
 
-                self.notification_service.send_email_message_with_html(
+                send_email_message_with_html.delay(
                     recipients=[shipment.client_contact_email],
                     subject_msg="Your order is Delivered",
                     context = {

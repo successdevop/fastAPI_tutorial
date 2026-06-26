@@ -9,20 +9,20 @@ from app.service.shipment_evt_service import ShipmentEventService
 from app.service.shipment_service import ShipmentServices
 
 
-def get_delivery_service(session: SessionDep, task: BackgroundTasks):
-    return DeliveryPartnerService(session=session, task=task)
+def get_delivery_service(session: SessionDep):
+    return DeliveryPartnerService(session=session)
 
 
 def get_shipment_service(session: SessionDep, task: BackgroundTasks):
     return ShipmentServices(
         session=session,
-        partner_service=DeliveryPartnerService(session=session, task=task),
+        partner_service=DeliveryPartnerService(session=session),
         event_service=ShipmentEventService(session=session, task=task)
     )
 
 
-def get_seller_service(session: SessionDep, task: BackgroundTasks):
-    return SellerService(session=session, task=task)
+def get_seller_service(session: SessionDep):
+    return SellerService(session=session)
 
 
 def get_event_service(session: SessionDep, task: BackgroundTasks):

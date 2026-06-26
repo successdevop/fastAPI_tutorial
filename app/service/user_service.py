@@ -2,22 +2,21 @@ import re
 from datetime import timedelta
 from typing import Type, Tuple
 
-from fastapi import HTTPException, status, BackgroundTasks
+from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.config import app_settings
-from app.notifications.email_service import NotificationService
 from app.service.base_service import BaseService
 from app.model.base_model import User
 from app.auth.auth_utils import verify_password, generate_token, generate_passwd_hash, generate_url_safe_token, \
     decode_url_safe_token
+from app.worker.tasks import send_email_message_with_html
 
 
 class UserService(BaseService):
-    def __init__(self, model: Type[User], session: AsyncSession, task: BackgroundTasks):
+    def __init__(self, model: Type[User], session: AsyncSession):
         super().__init__(model=model, session=session)
-        self._notification = NotificationService(task=task)
 
     async def _get_by_email(self, email: str) -> User | None:
         return (await self.session.exec(
@@ -75,7 +74,7 @@ class UserService(BaseService):
             }
         )
 
-        self._notification.send_email_message_with_html(
+        send_email_message_with_html.delay(
             recipients=[user.email],
             subject_msg="Verify your account with Shipment_App",
             context={
@@ -113,7 +112,7 @@ class UserService(BaseService):
                                 status_code=status.HTTP_404_NOT_FOUND)
 
         token = generate_url_safe_token({"id": user.id}, salt="reset_password")
-        self._notification.send_email_message_with_html(
+        send_email_message_with_html.delay(
             recipients=[user.email],
             subject_msg="Reset your password",
             context={

@@ -8,7 +8,7 @@ from app.database.redis_conn import get_shipment_verification_code
 from app.dependency.user_dependency import DeliveryPartnerDep, SellerDep
 from app.model.seller_model import Seller
 from app.model.shipment_model import Shipment, ShipmentStatus, ShipmentsReview
-from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSchema, ShipmentReview
+from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSchema
 from app.service.base_service import BaseService
 from app.service.deliver_service import DeliveryPartnerService
 from app.service.shipment_evt_service import ShipmentEventService

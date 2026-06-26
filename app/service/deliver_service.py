@@ -12,8 +12,8 @@ from app.service.user_service import UserService
 
 
 class DeliveryPartnerService(UserService):
-    def __init__(self, session: AsyncSession, task):
-        super().__init__(DeliveryPartner, session=session, task=task)
+    def __init__(self, session: AsyncSession):
+        super().__init__(DeliveryPartner, session=session)
 
     async def get_all_delivery_partners(self):
         result = await self.session.exec(
