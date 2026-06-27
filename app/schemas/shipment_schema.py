@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional, List
 
 from pydantic import BaseModel, Field, field_serializer, ConfigDict
-from app.model.shipment_model import ShipmentStatus
+from app.model.shipment_model import ShipmentStatus, TagName
 
 
 class ShipmentEventResponse(BaseModel):
@@ -14,6 +14,14 @@ class ShipmentEventResponse(BaseModel):
     shipment_id: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class TagData(BaseModel):
+    tag_id: str
+    name: TagName
+    instruction: str
+    model_config = ConfigDict(from_attributes=True)
+
 
 class BaseShipmentModel(BaseModel):
     ship_id: str = Field(
@@ -32,6 +40,8 @@ class BaseShipmentModel(BaseModel):
         description="A list of shipment events",
         default_factory=list
     )
+    tags: List[TagData] = Field(description="A list of shipment tags", default_factory=list)
+
     created_at: datetime = Field(
         description="Shipment creation time"
     )

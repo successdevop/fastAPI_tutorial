@@ -4,6 +4,7 @@ from fastapi.params import Form
 from starlette.templating import Jinja2Templates
 
 from app.config import app_settings
+from app.model.shipment_model import TagName
 from app.schemas.shipment_schema import BaseShipmentModel, ShipmentUpdateSchema, ShipmentCreateSchema
 from app.dependency.user_dependency import SellerDep, DeliveryPartnerDep
 from app.service.service_dependency import ShipmentServiceDep
@@ -38,6 +39,16 @@ async def create_new_shipment(seller: SellerDep, req: ShipmentCreateSchema, ship
 @shipment_router.get("/track")
 async def track_shipment(request: Request, s_id: str, shipment_service: ShipmentServiceDep):
     return await shipment_service.track_shipment(s_id=s_id, request=request)
+
+
+@shipment_router.get("/tag")
+async def add_tag_to_shipment(s_id: str, tag_name: TagName, shipment_service: ShipmentServiceDep):
+    return await shipment_service.add_tag(s_id, tag_name)
+
+
+@shipment_router.get("/tag")
+async def remove_tag_from_shipment(s_id: str, tag_name: TagName, shipment_service: ShipmentServiceDep):
+    return await shipment_service.remove_tag(s_id, tag_name)
 
 
 @shipment_router.get("/review")

@@ -4,8 +4,8 @@ from enum import Enum
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlmodel import Relationship, SQLModel, Field, Column
-
+from sqlmodel import Relationship, SQLModel, Field, Column, select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 if TYPE_CHECKING:
     from app.model.seller_model import Seller
@@ -35,6 +35,11 @@ class TagName(str, Enum):
     GIFT = "gift"
     RETURN = "return"
     DOCUMENT = "document"
+
+    async def tag(self, session: AsyncSession):
+        return await session.scalar(
+            select(Tag).where(Tag.name == self.value)
+        )
 
 
 class ShipmentTag(SQLModel, table=True):

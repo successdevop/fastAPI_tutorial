@@ -7,7 +7,7 @@ from app.auth.auth_utils import decode_url_safe_token
 from app.database.redis_conn import get_shipment_verification_code
 from app.dependency.user_dependency import DeliveryPartnerDep, SellerDep
 from app.model.seller_model import Seller
-from app.model.shipment_model import Shipment, ShipmentStatus, ShipmentsReview
+from app.model.shipment_model import Shipment, ShipmentStatus, ShipmentsReview, TagName, Tag
 from app.schemas.shipment_schema import ShipmentUpdateSchema, ShipmentCreateSchema
 from app.service.base_service import BaseService
 from app.service.deliver_service import DeliveryPartnerService
@@ -144,6 +144,28 @@ class ShipmentServices(BaseService):
 
         await self._add(new_review)
         return {"details":"Review submitted"}
+
+    async def add_tag(self, s_id: str, tag_name: TagName):
+        shipment = await self._get(uid=s_id)
+        if not shipment:
+            raise HTTPException(detail=f"Shipment with id {s_id} not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        new_tag = Tag(name=tag_name.EXPRESS, instruction="This is a priority delivery")
+
+        shipment.tags.append(new_tag)
+        return await self._update(shipment)
+
+    async def remove_tag(self, s_id: str, tag_name: TagName):
+        shipment = await self._get(uid=s_id)
+        if not shipment:
+            raise HTTPException(detail=f"Shipment with id {s_id} not found", status_code=status.HTTP_404_NOT_FOUND)
+
+        tag = await tag_name.tag(self.session)
+        if not tag:
+            raise HTTPException(detail=f"Tag does not exist on shipment", status_code=status.HTTP_404_NOT_FOUND)
+
+        shipment.tags.remove(tag)
+        return await self._update(shipment)
 
 
 
