@@ -145,12 +145,12 @@ class ShipmentServices(BaseService):
         await self._add(new_review)
         return {"details":"Review submitted"}
 
-    async def add_tag(self, s_id: str, tag_name: TagName):
+    async def add_tag(self, s_id: str, tag_name: TagName, instruction: str):
         shipment = await self._get(uid=s_id)
         if not shipment:
             raise HTTPException(detail=f"Shipment with id {s_id} not found", status_code=status.HTTP_404_NOT_FOUND)
 
-        new_tag = Tag(name=tag_name.EXPRESS, instruction="This is a priority delivery")
+        new_tag = Tag(name=tag_name.value, instruction=instruction)
 
         shipment.tags.append(new_tag)
         return await self._update(shipment)

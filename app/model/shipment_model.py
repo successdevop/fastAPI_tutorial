@@ -4,6 +4,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.dialects.postgresql import TIMESTAMP
+from sqlalchemy.orm import selectinload
 from sqlmodel import Relationship, SQLModel, Field, Column, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -70,7 +71,46 @@ class Tag(SQLModel, table=True):
     instruction: str
 
     shipments: list[Shipment] = Relationship(back_populates="tags", link_model=ShipmentTag,
-                                             sa_relationship_kwargs={"lazy":"selectin"})
+                                             sa_relationship_kwargs={"lazy":"immediate"})
+
+
+class Order(SQLModel, table=True):
+    shipment_id: str = Field(
+        foreign_key="shipment.ship_id",
+        primary_key=True)
+
+    product_id: str = Field(
+        foreign_key="product.product_id",
+        primary_key=True)
+
+    created_at: datetime = Field(
+        default_factory=get_current_time,
+        sa_column=Column(TIMESTAMP(timezone=True), nullable=False)
+    )
+
+    quantity: int = Field(default=1)
+
+    shipment: "Shipment" = Relationship(back_populates="order")
+    product: "Product" = Relationship(back_populates="order")
+
+
+class Product(SQLModel, table=True):
+    __tablename__ = "product"
+
+    product_id: str = Field(
+        default_factory=lambda : str(uuid.uuid4()),
+        primary_key=True,
+        index=True,
+        nullable=False
+    )
+
+    title: str
+    description: str
+    price: float | int
+    weight: float | int
+
+    orders: list["Order"] = Relationship(back_populates="product")
+
 
 class Shipment(SQLModel, table=True):
     __tablename__ = "shipment"
@@ -93,7 +133,9 @@ class Shipment(SQLModel, table=True):
                                             sa_relationship_kwargs={"lazy":"selectin", "cascade":"all, delete-orphan"})
 
     tags: list["Tag"] = Relationship(back_populates="shipments", link_model=ShipmentTag,
-                                       sa_relationship_kwargs={"lazy":"selectin"})
+                                       sa_relationship_kwargs={"lazy":"immediate"})
+
+    orders: list["Order"] = Relationship(back_populates="shipment")
 
     client_contact_email: str | None = Field(default=None)
     client_contact_phone: str | None = Field(default=None)
@@ -160,3 +202,4 @@ class ShipmentsReview(SQLModel, table=True):
     shipment_id: str = Field(foreign_key="shipment.ship_id", nullable=False, ondelete="CASCADE")
 
     shipment: "Shipment" = Relationship(back_populates="review", sa_relationship_kwargs={"lazy":"selectin"})
+

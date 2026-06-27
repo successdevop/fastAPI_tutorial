@@ -4,6 +4,7 @@ from fastapi.params import Form
 from starlette.templating import Jinja2Templates
 
 from app.config import app_settings
+from app.database.session import SessionDep
 from app.model.shipment_model import TagName
 from app.schemas.shipment_schema import BaseShipmentModel, ShipmentUpdateSchema, ShipmentCreateSchema
 from app.dependency.user_dependency import SellerDep, DeliveryPartnerDep
@@ -21,19 +22,15 @@ async def get_all_shipments(_: SellerDep, shipment_service: ShipmentServiceDep):
     return await shipment_service.get_all_shipments()
 
 
-@shipment_router.patch("/{s_id}", response_model=BaseShipmentModel, status_code=status.HTTP_200_OK)
-async def update_a_shipment(partner:DeliveryPartnerDep, s_id: str, req: ShipmentUpdateSchema, shipment_service: ShipmentServiceDep):
-    return await shipment_service.update_a_shipment(s_id=s_id, req_body=req, partner=partner)
-
-
-@shipment_router.delete("/{s_id}", response_model=dict[str, str], status_code=status.HTTP_200_OK)
-async def delete_a_shipment(s_id: str, shipment_service: ShipmentServiceDep):
-    return await shipment_service.delete_a_shipment(s_id=s_id)
-
-
 @shipment_router.post("/", response_model=BaseShipmentModel, status_code=status.HTTP_201_CREATED)
 async def create_new_shipment(seller: SellerDep, req: ShipmentCreateSchema, shipment_service: ShipmentServiceDep):
     return await shipment_service.create_a_shipment(req_body=req, seller=seller)
+
+
+@shipment_router.get("/all_tag", response_model=list[BaseShipmentModel])
+async def get_shipments_with_tag(tag_name: TagName, session: SessionDep):
+    tags = await tag_name.tag(session=session)
+    return tags.shipments
 
 
 @shipment_router.get("/track")
@@ -42,11 +39,11 @@ async def track_shipment(request: Request, s_id: str, shipment_service: Shipment
 
 
 @shipment_router.get("/tag")
-async def add_tag_to_shipment(s_id: str, tag_name: TagName, shipment_service: ShipmentServiceDep):
-    return await shipment_service.add_tag(s_id, tag_name)
+async def add_tag_to_shipment(s_id: str, tag_name: TagName, instruction: str, shipment_service: ShipmentServiceDep):
+    return await shipment_service.add_tag(s_id, tag_name, instruction)
 
 
-@shipment_router.get("/tag")
+@shipment_router.delete("/tag")
 async def remove_tag_from_shipment(s_id: str, tag_name: TagName, shipment_service: ShipmentServiceDep):
     return await shipment_service.remove_tag(s_id, tag_name)
 
@@ -67,15 +64,27 @@ async def cancel_shipment(s_id: str, seller: SellerDep, shipment_service: Shipme
     return await shipment_service.cancel_shipment(s_id=s_id, seller=seller)
 
 
-@shipment_router.get("/{s_id}", response_model=BaseShipmentModel, status_code=status.HTTP_200_OK)
-async def get_a_shipment(s_id: str, shipment_service: ShipmentServiceDep):
-    return await shipment_service.get_a_shipment(s_id=s_id)
-
-
 @shipment_router.post("/review")
 async def submit_review(token: str,
                         rating: Annotated[int | None, Form(ge=1, le=5)],
                         comment: Annotated[str | None, Form()],
                         shipment_service: ShipmentServiceDep):
     return await shipment_service.rate(token=token, rating=rating, comment=comment)
+
+
+@shipment_router.get("/{s_id}", response_model=BaseShipmentModel, status_code=status.HTTP_200_OK)
+async def get_a_shipment(s_id: str, shipment_service: ShipmentServiceDep):
+    return await shipment_service.get_a_shipment(s_id=s_id)
+
+
+@shipment_router.patch("/{s_id}", response_model=BaseShipmentModel, status_code=status.HTTP_200_OK)
+async def update_a_shipment(partner:DeliveryPartnerDep, s_id: str, req: ShipmentUpdateSchema, shipment_service: ShipmentServiceDep):
+    return await shipment_service.update_a_shipment(s_id=s_id, req_body=req, partner=partner)
+
+
+@shipment_router.delete("/{s_id}", response_model=dict[str, str], status_code=status.HTTP_200_OK)
+async def delete_a_shipment(s_id: str, shipment_service: ShipmentServiceDep):
+    return await shipment_service.delete_a_shipment(s_id=s_id)
+
+
 
