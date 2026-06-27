@@ -24,6 +24,49 @@ class ShipmentStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
+class TagName(str, Enum):
+    EXPRESS = 'express'
+    STANDARD = "standard"
+    FRAGILE = "fragile"
+    HEAVY = "heavy"
+    INTERNATIONAL = "international"
+    DOMESTIC = "domestic"
+    TEMPERATURE_CONTROL = "temperature_control"
+    GIFT = "gift"
+    RETURN = "return"
+    DOCUMENT = "document"
+
+
+class ShipmentTag(SQLModel, table=True):
+    __tablename__ = "shipment_tag"
+
+    shipment_id: str = Field(
+        foreign_key="shipment.ship_id",
+        primary_key=True
+    )
+
+    tag_id: str = Field(
+        foreign_key="tag.tag_id",
+        primary_key=True
+    )
+
+
+class Tag(SQLModel, table=True):
+    __tablename__ = "tag"
+
+    tag_id: str = Field(
+        default_factory=lambda : str(uuid.uuid4()),
+        primary_key=True,
+        index=True,
+        nullable=False
+    )
+
+    name: TagName
+    instruction: str
+
+    shipments: list[Shipment] = Relationship(back_populates="tags", link_model=ShipmentTag,
+                                             sa_relationship_kwargs={"lazy":"selectin"})
+
 class Shipment(SQLModel, table=True):
     __tablename__ = "shipment"
 
@@ -43,6 +86,9 @@ class Shipment(SQLModel, table=True):
 
     review: "ShipmentsReview" = Relationship(back_populates="shipment",
                                             sa_relationship_kwargs={"lazy":"selectin", "cascade":"all, delete-orphan"})
+
+    tags: list["Tag"] = Relationship(back_populates="shipments", link_model=ShipmentTag,
+                                       sa_relationship_kwargs={"lazy":"selectin"})
 
     client_contact_email: str | None = Field(default=None)
     client_contact_phone: str | None = Field(default=None)
